@@ -7,6 +7,7 @@ import sys
 import logging
 from io import StringIO
 from typing import Dict, Any, List
+from collections import Counter
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -104,6 +105,32 @@ class DatasetDownloader:
             df = df[standard_columns]
             df['Municipality'] = column_mapping['Municipality']
 
+            # If lat - lon came from the same column, they were merged and need to be split up again
+            has_lat = "Lat" in df.columns
+            has_lon = "Lon" in df.columns
+
+            if not (has_lat and has_lon):
+                # Look for a column containing POINT(lat lon)
+                point_col = next(
+                    (col for col in df.columns if df[col].astype(str).str.contains("POINT", na=False).any()),
+                    None
+                )
+
+                if point_col is None:
+                    raise ValueError("No Lat/Lon columns and no POINT column found.")
+
+                logger.info(f"Splitting lat/lon from column '{point_col}'")
+
+                # Extract coordinates
+                coords = df[point_col].str.extract(
+                    r"POINT\s*\(\s*([-0-9\.]+)\s+([-0-9\.]+)\s*\)"
+                )
+
+                df["Lon"] = coords[0]
+                df["Lat"] = coords[1]
+
+            logger.info(f"Standardized columns: {', '.join(df.columns)}")
+
             logger.info(f"Standardized {len(standard_columns)} columns: {', '.join(standard_columns)}")
 
         return df
@@ -192,10 +219,10 @@ def create_example_config():
         {
             "name": "Eindhoven",
             "data_owner": "Eindhoven (Gemeente)",
-            "email_address": None,
-            "update_frequency": None,
+            "email_address": "data@eindhoven.nl",
+            "update_frequency": "Quarterly",
             "language": "Dutch",
-            "primary_source": "https://data.eindhoven.nl/explore/dataset/bomen/",
+            "primary_source": "https://data.eindhoven.nl/datasets/bomen",
             "download_link": "https://data.eindhoven.nl/api/v2/catalog/datasets/bomen/exports/json",
             "file_type": "JSON",
             "crs": "EPSG:4326",
@@ -208,6 +235,7 @@ def create_example_config():
                 "Year_of_planting": "plantjaar"
             }
         },
+
         {
             "name": "Nijmegen",
             "data_owner": "Nijmegen (Gemeente)",
@@ -220,10 +248,10 @@ def create_example_config():
             "crs": "EPSG:28992",
             "column_mapping": {
                 "Municipality": "Nijmegen",
-                "Lon": "GEOMETRIE [1]",
-                "Lat": "GEOMETRIE [0]",
+                "Lon": "GEOMETRIE",
+                "Lat": "GEOMETRIE",
                 "Latin_name": "BOOMSOORT",
-                "Height": "HOOGTE",
+                "Height": "HOOGTE_EXACT",
                 "Year_of_planting": "PLANTJAAR"
             }
         }
@@ -338,8 +366,8 @@ def add_dataset_to_config(config_path: str = "datasets_config.json"):
         "crs": input("CRS (e.g., 'EPSG:4326'): ").strip(),
         "column_mapping": {
           "Municipality": input("Municipality name (e.g., 'Amsterdam'): ").strip(),
-          "Lon": input("The name of the column containing the Longitude value (e.g., 'LON, Y_coordinate'): ").strip(),
-          "Lat": input("The name of the column containing the Latitude value (e.g., 'LAT, X_coordinate'): ").strip(),
+          "Lon": input("The name of the column containing the Longitude value (e.g., 'LON, Y_coordinate', 'GEOM'): ").strip(),
+          "Lat": input("The name of the column containing the Latitude value (e.g., 'LAT, X_coordinate', 'GEOM'): ").strip(),
           "Latin_name": input("The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
           "Height": input("The name of the column containing the height (e.g., 'Hoogte', 'Boomhoogte'): ").strip(),
           "Year_of_planting": input("The name of the column containing the year of planting (e.g., 'Kiemjaar','Plantjaar'): ").strip()
