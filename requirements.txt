@@ -1,1 +1,3 @@
 geoparquet-io==0.8.0
+geopandas==1.1.2
+requests==2.32.5

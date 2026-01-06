@@ -1,13 +1,15 @@
 import os
-from idlelib.outwin import file_line_pats
 from os.path import isdir
-from re import fullmatch
 
 import geoparquet_io as gpio
-from geoparquet_io.core.add_bbox_column import add_bbox_column
-from geoparquet_io.core.hilbert_order import hilbert_order
-from geoparquet_io.core.partition_by_h3 import partition_by_h3
-from src.utils import unzip_dir
+from geoparquet_io.cli.main import check_all
+from geoparquet_io.core.validate import validate_geoparquet
+
+
+import geopandas as gpd
+from pathlib import Path
+
+from shapely import wkt
 
 SUPPORTED_TYPES = {
     ".geojson",
@@ -15,8 +17,6 @@ SUPPORTED_TYPES = {
     ".shp",
     ".gpkg",
     ".gdb",
-    ".csv",
-    ".tsv"
 }
 
 RAW_DIRECTORY = "../data/raw/"
@@ -48,44 +48,74 @@ def convert_files():
             # table = gpio.convert('data.csv', wkt_column='geometry')
             # # Convert CSV with lat/lon columns
             # table = gpio.convert('data.csv', lat_column='latitude', lon_column='longitude')
+            # table = gpio.convert(full_path, skip_invalid=True).add_bbox().sort_hilbert()
+            # table.write(f'{CONVERTED_DIRECTORY}{filename}.parquet')
 
-            (gpio.convert(full_path)
-             .add_bbox()
-             .sort_hilbert()
-             .write(f'{CONVERTED_DIRECTORY}{filename}.parquet'))
+            gdf = gpd.read_file(full_path, use_arrow=True)
+            # Reproject
+            gdf = gdf.to_crs(28992)
+            # Remove rows where geometry is None or Empty
+            gdf = gdf[~(gdf.geometry.is_empty | gdf.geometry.isna())]
+            # Write as geoparquet file
+            gdf.to_parquet(f'{CONVERTED_DIRECTORY}{filename}.parquet')
 
-        elif file_extension == ".parquet":
-            print("Already a parquet file:", file, ", moving to converted...")
-            #todo: move file to converted folder, maybe run a hilbert sort too?
+        elif file_extension == ".csv":
+            print("TRYNA WRITE A CSV FUCCCCC")
+            df = gpd.read_file(full_path, use_arrow=True)
+            df['geometry'] = df['GEOM'].apply(wkt.loads)
+            gdf = gpd.GeoDataFrame(df, crs='epsg:28992')
+            path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
+            gdf.to_parquet(path
+                           )
+        # Move files that are already .parquet
+        # elif file_extension == ".parquet":
+        #     print(f"Already a parquet file: {file}, reprojecting and writing to converted...")
+        #     gdf = gpd.read_parquet(full_path)
+        #     # Reproject
+        #     gdf = gdf.to_crs(28992)
+        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
+        #     gdf.to_parquet(path)
 
         # Error if unsupported filetype
         else:
             print(f"the file {full_path} is not supported")
 
-def convert_crs():
+def add_space_filling_curve():
     for file in os.listdir(CONVERTED_DIRECTORY):
-        print(f"Hilbert ordering and reprojecting to {CRS} for file:", file, "...")
-
+        print(f"Adding bbox and performing hilbert sorting for file:", file, "...")
         full_path = os.path.join(CONVERTED_DIRECTORY, file)
+
         table = gpio.read(full_path)
-        print(table.crs)
-        (
-            table.reproject(target_crs=CRS)
-                .write(full_path)
-         )
+        table.add_bbox().sort_hilbert()
+        table.write(full_path)
+
+def validate():
+    for file in os.listdir(CONVERTED_DIRECTORY):
+        print(f"Performing validation for file:", file, "...")
+        full_path = os.path.join(CONVERTED_DIRECTORY, file)
+
+        validation_result = validate_geoparquet(full_path)
+        print(f"PASSED = {validation_result.is_valid}")
+        print(f"Passed {validation_result.passed_count}")
+        print(f"Failed {validation_result.failed_count}")
+        print(f"Warnings {validation_result.warning_count}")
 
 def main():
     print("---- COMMENCING GEOPARQUET CONVERSION ----")
     convert_files()
-    print("---- COMMENCING GEOPARQUET ORDERING AND REPROJECTION ----")
-    convert_crs()
 
-    ###
-    # Todo: (assume data has been downloaded)
-    # Todo: go into raw data folder, for each file inside:
-    # Todo: convert file from current format to geoparquet
-    # Todo: write that to the converted directory
+    print("---- COMMENCING GEOPARQUET HILBERT SORTING ----")
+    add_space_filling_curve()
+
+    print("---- COMMENCING GEOPARQUET VALIDATION ----")
+    validate()
     #
+    # ###
+    # # Todo: (assume data has been downloaded)
+    # # Todo: go into raw data folder, for each file inside:
+    # # Todo: convert file from current format to geoparquet
+    # # Todo: write that to the converted directory
+    # #
 
 if __name__ == "__main__":
     # unzip_dir("../data/raw/")
