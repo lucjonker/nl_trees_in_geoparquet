@@ -6,6 +6,7 @@ import argparse
 import sys
 import logging
 from io import StringIO
+from typing import Dict, Any, List
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -70,8 +71,41 @@ class DatasetDownloader:
         else:
             raise ValueError(f"Unsupported file type: {file_type}")
 
-    def standardize_data(self, df: pd.DataFrame, dataset_name: str):
-        print("To be implemented...")
+    def standardize_data(self, df: pd.DataFrame, dataset_info: Dict[str, Any]) -> pd.DataFrame:
+        """
+        Standardize dataset by renaming columns
+
+        Args:
+            df: Raw DataFrame
+            dataset_info: Dictionary with dataset metadata and column mappings
+
+        Returns:
+            Standardized DataFrame with only mapped columns
+        """
+        # Get column mappings if they exist
+        column_mapping = dataset_info.get('column_mapping', {})
+
+        if column_mapping:
+            # Create reverse mapping (original -> standard)
+            rename_dict = {}
+            for standard_name, original_name in column_mapping.items():
+                if standard_name == "Municipality":
+                    continue
+                elif original_name in df.columns:
+                    rename_dict[original_name] = standard_name
+                else:
+                    logger.warning(f"Column '{original_name}' not found in dataset. Skipping.")
+
+            # Rename columns
+            df = df.rename(columns=rename_dict)
+
+            # Keep only the standardized columns that exist
+            standard_columns = [col for col in column_mapping.keys() if col in df.columns]
+            df = df[standard_columns]
+            df['Municipality'] = column_mapping['Municipality']
+
+            logger.info(f"Standardized {len(standard_columns)} columns: {', '.join(standard_columns)}")
+
         return df
 
     def save_data(self, df: pd.DataFrame, dataset_name: str):
@@ -104,10 +138,10 @@ class DatasetDownloader:
                 logger.info(f"Parsed {len(df)} records")
 
                 # Standardize data
-                #df_standardized = self.standardize_data(df, dataset)
+                df_standardized = self.standardize_data(df, dataset)
 
                 # Save data
-                self.save_data(df, dataset_name)
+                self.save_data(df_standardized, dataset_name)
 
             except Exception as e:
                 logger.error(f"Failed to process {dataset_name}: {e}")
@@ -126,7 +160,15 @@ def create_example_config():
             "primary_source": "https://data.groningen.nl/dataset/bomen-gemeente-groningen",
             "download_link": "https://maps.groningen.nl/geoserver/geo-data/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geo-data:Bomen%20gemeente%20Groningen&maxFeatures=1000000&outputFormat=application/json&srsName=EPSG:4326&format_options=id_policy:reference_no=false",
             "file_type": "JSON",
-            "crs": "EPSG:4326"
+            "crs": "EPSG:4326",
+            "column_mapping": {
+                "Municipality": "Groningen",
+                "Lon": "properties.LON",
+                "Lat": "properties.LAT",
+                "Latin_name": "properties.LATIJNSE_NAAM",
+                "Height": "properties.BOOMHOOGTE",
+                "Year_of_planting": "properties.KIEMJAAR"
+            }
         },
         {
             "name": "Dronten",
@@ -137,7 +179,15 @@ def create_example_config():
             "primary_source": "http://data.overheid.nl/dataset/bomenkaart-dronten",
             "download_link": "https://nedgeoservices.nedgraphicscs.nl/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=topp:O10002_Bomenkaart_OD&outputFormat=csv",
             "file_type": "CSV",
-            "crs": "EPSG:4326"
+            "crs": "EPSG:4326",
+            "column_mapping": {
+                "Municipality": "Dronten",
+                "Lon": "lon",
+                "Lat": "lat",
+                "Latin_name": "latijnse_naam",
+                "Height": "hoogte",
+                "Year_of_planting": "plantjaar"
+            }
         },
         {
             "name": "Eindhoven",
@@ -148,7 +198,15 @@ def create_example_config():
             "primary_source": "https://data.eindhoven.nl/explore/dataset/bomen/",
             "download_link": "https://data.eindhoven.nl/api/v2/catalog/datasets/bomen/exports/json",
             "file_type": "JSON",
-            "crs": "EPSG:4326"
+            "crs": "EPSG:4326",
+            "column_mapping": {
+                "Municipality": "Eindhoven",
+                "Lon": "geo_point_2d.lon",
+                "Lat": "geo_point_2d.lat",
+                "Latin_name": "boomsoort",
+                "Height": "hoogte",
+                "Year_of_planting": "plantjaar"
+            }
         },
         {
             "name": "Nijmegen",
@@ -159,7 +217,15 @@ def create_example_config():
             "primary_source": "https://opendata.nijmegen.nl/dataset/bomen",
             "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv",
             "file_type": "CSV",
-            "crs": "EPSG:4326"
+            "crs": "EPSG:28992",
+            "column_mapping": {
+                "Municipality": "Nijmegen",
+                "Lon": "GEOMETRIE [1]",
+                "Lat": "GEOMETRIE [0]",
+                "Latin_name": "BOOMSOORT",
+                "Height": "HOOGTE",
+                "Year_of_planting": "PLANTJAAR"
+            }
         }
     ]
 
@@ -175,11 +241,16 @@ def add_dataset_programmatically(
         data_owner: str,
         download_link: str,
         file_type: str,
+        lon_column: str,
+        lat_column: str,
+        latin_name_column: str,
+        height_column: str,
+        year_of_planting_column: str,
         email_address: str = "",
         update_frequency: str = None,
         language: str = "Dutch",
         primary_source: str = "",
-        crs: str = "EPSG:4326"
+        crs: str = "EPSG:4326",
 ) -> bool:
     """
     Add a dataset to config file programmatically.
@@ -190,6 +261,11 @@ def add_dataset_programmatically(
         data_owner: Organization owning the data
         download_link: API URL to download data
         file_type: Type of file (JSON or CSV)
+        lon_column: The name of the column containing the Longitude value,
+        lat_column: The name of the column containing the Latitude value,
+        latin_name_column: The name of the column containing the Latin name,
+        height_column: The name of the column containing the height,
+        year_of_planting_column: The name of the column containing the year of planting,
         email_address: Contact email
         update_frequency: How often data is updated
         language: Language of dataset
@@ -208,7 +284,15 @@ def add_dataset_programmatically(
         "primary_source": primary_source,
         "download_link": download_link,
         "file_type": file_type.upper(),
-        "crs": crs
+        "crs": crs,
+        "column_mapping": {
+            "Municipality": name,
+            "Lon": lon_column,
+            "Lat": lat_column,
+            "Latin_name": latin_name_column,
+            "Height": height_column,
+            "Year_of_planting": year_of_planting_column
+        }
     }
 
     # Load existing config or create new one
@@ -251,12 +335,26 @@ def add_dataset_to_config(config_path: str = "datasets_config.json"):
         "primary_source": input("Primary source URL: ").strip(),
         "download_link": input("Download link (API URL): ").strip(),
         "file_type": input("File type (JSON or CSV): ").strip().upper(),
-        "crs": input("CRS (e.g., 'EPSG:4326'): ").strip()
+        "crs": input("CRS (e.g., 'EPSG:4326'): ").strip(),
+        "column_mapping": {
+          "Municipality": input("Municipality name (e.g., 'Amsterdam'): ").strip(),
+          "Lon": input("The name of the column containing the Longitude value (e.g., 'LON, Y_coordinate'): ").strip(),
+          "Lat": input("The name of the column containing the Latitude value (e.g., 'LAT, X_coordinate'): ").strip(),
+          "Latin_name": input("The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
+          "Height": input("The name of the column containing the height (e.g., 'Hoogte', 'Boomhoogte'): ").strip(),
+          "Year_of_planting": input("The name of the column containing the year of planting (e.g., 'Kiemjaar','Plantjaar'): ").strip()
+        }
     }
 
     # Validate required fields
     if not all([dataset["name"], dataset["download_link"], dataset["file_type"]]):
         logger.error("Name, download_link, and file_type are required fields!")
+        return False
+
+    elif not all([dataset["column_mapping"]["Municipality"], dataset["column_mapping"]["Lon"],
+                  dataset["column_mapping"]["Lat"], dataset["column_mapping"]["Latin_name"],
+                  dataset["column_mapping"]["Height"], dataset["column_mapping"]["Year_of_planting"]]):
+        logger.error("All the different columns need to be mapped properly")
         return False
 
     # Load existing config or create new one
