@@ -1,34 +1,29 @@
+import io
 import json
 import requests
-import pandas as pd
+import geopandas as gpd
 from pathlib import Path
 import argparse
 import sys
 import logging
 from io import StringIO
 from typing import Dict, Any#, List
-# from collections import Counter
-
-# Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 class DatasetDownloader:
-    def __init__(self, config_path: str, output_dir: str = "standardized_data"):
+    # Todo remove output path stuff
+    def __init__(self, config_path: str, logger: logging.Logger):
         """
         Initialize the dataset downloader.
 
         Args:
             config_path: Path to JSON config file with dataset information
-            output_dir: Directory to save standardized output files
         """
-        self.config_path = config_path
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(exist_ok=True)
+        self.config = self.load_config(config_path)
+        self.logger = logger
 
-    def load_config(self) -> list:
+    def load_config(self, config_path) -> list:
         """Load dataset configuration from JSON file."""
-        with open(self.config_path, 'r') as f:
+        with open(config_path, 'r') as f:
             return json.load(f)
 
     def retrieve_data(self, url: str) -> requests.Response:
@@ -44,13 +39,13 @@ class DatasetDownloader:
         try:
             response = requests.get(url, timeout=30)
             response.raise_for_status()
-            logger.info(f"Successfully retrieved data (Status: {response.status_code})")
+            self.logger.info(f"Successfully retrieved data (Status: {response.status_code})")
             return response
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error retrieving data from {url}: {e}")
+            self.logger.error(f"Error retrieving data from {url}: {e}")
             raise
 
-    def parse_data(self, response: requests.Response, file_type: str) -> pd.DataFrame:
+    def parse_data(self, response: requests.Response, file_type: str):
         """
         Parse response data based on file type.
 
@@ -61,23 +56,23 @@ class DatasetDownloader:
         Returns:
             DataFrame containing parsed data
         """
-        if file_type.upper() == "JSON":
-            data = response.json()
-            # Handle GeoJSON format
-            if "features" in data:
-                return pd.json_normalize(data["features"])
-            return pd.json_normalize(data)
-        elif file_type.upper() == "CSV":
-            return pd.read_csv(StringIO(response.text))
-        else:
-            raise ValueError(f"Unsupported file type: {file_type}")
 
-    def standardize_data(self, df: pd.DataFrame, dataset_info: Dict[str, Any]) -> pd.DataFrame:
+        if file_type.upper() == "CSV":
+            raise NotImplementedError("CSV file type parsing is not implemented in this snippet.")
+
+        content = io.BytesIO(response.content)
+        
+        gdf = gpd.read_file(content)
+
+        return gdf
+
+    #Todo: Fix standardize data to output valid geodataframes (is it still broken?)
+    def standardize_data(self, gdf: gpd.GeoDataFrame, dataset_info: Dict[str, Any]) -> gpd.GeoDataFrame:
         """
         Standardize dataset by renaming columns
 
         Args:
-            df: Raw DataFrame
+            gdf: Raw DataFrame
             dataset_info: Dictionary with dataset metadata and column mappings
 
         Returns:
@@ -92,131 +87,51 @@ class DatasetDownloader:
             for standard_name, original_name in column_mapping.items():
                 if standard_name == "Municipality":
                     continue
-                elif original_name in df.columns:
+                elif original_name in gdf.columns:
                     rename_dict[original_name] = standard_name
                 else:
-                    logger.warning(f"Column '{original_name}' not found in dataset. Skipping.")
+                    self.logger.warning(f"Column '{original_name}' not found in dataset. Skipping.")
 
             # Rename columns
-            df = df.rename(columns=rename_dict)
+            gdf = gdf.rename(columns=rename_dict)
 
             # Keep only the standardized columns that exist
-            standard_columns = [col for col in column_mapping.keys() if col in df.columns]
-            df = df[standard_columns]
-            df['Municipality'] = column_mapping['Municipality']
+            standard_columns = [col for col in column_mapping.keys() if col in gdf.columns]
+            gdf = gdf[standard_columns]
+            gdf['Municipality'] = column_mapping['Municipality']
 
             # If lat - lon came from the same column, they were merged and need to be split up again
-            has_lat = "Lat" in df.columns
-            has_lon = "Lon" in df.columns
+            has_lat = "Lat" in gdf.columns
+            has_lon = "Lon" in gdf.columns
 
             if not (has_lat and has_lon):
                 # Look for a column containing POINT(lat lon)
                 point_col = next(
-                    (col for col in df.columns if df[col].astype(str).str.contains("POINT", na=False).any()),
+                    (col for col in gdf.columns if gdf[col].astype(str).str.contains("POINT", na=False).any()),
                     None
                 )
 
                 if point_col is None:
                     raise ValueError("No Lat/Lon columns and no POINT column found.")
 
-                logger.info(f"Splitting lat/lon from column '{point_col}'")
+                self.logger.info(f"Splitting lat/lon from column '{point_col}'")
 
                 # Extract coordinates
-                coords = df[point_col].str.extract(
+                coords = gdf[point_col].str.extract(
                     r"POINT\s*\(\s*([-0-9\.]+)\s+([-0-9\.]+)\s*\)"
                 )
 
-                df["Lon"] = coords[0]
-                df["Lat"] = coords[1]
+                gdf["Lon"] = coords[0]
+                gdf["Lat"] = coords[1]
 
-            logger.info(f"Standardized columns: {', '.join(df.columns)}")
+            self.logger.info(f"Standardized columns: {', '.join(gdf.columns)}")
 
-            logger.info(f"Standardized {len(standard_columns)} columns: {', '.join(standard_columns)}")
+            self.logger.info(f"Standardized {len(standard_columns)} columns: {', '.join(standard_columns)}")
 
-        return df
-
-    def save_data(self, df: pd.DataFrame, dataset_name: str):
-        """
-        Save standardized data to file.
-
-        Args:
-            df: Standardized DataFrame
-            dataset_name: Name for output file
-        """
-
-        csv_path = self.output_dir / f"{dataset_name}_standardized.csv"
-        df.to_csv(csv_path, index=False)
-        logger.info(f"Saved CSV version to {csv_path}")
-
-    def process_all_datasets(self):
-        """Process all datasets from config file."""
-        datasets = self.load_config()
-
-        for dataset in datasets:
-            dataset_name = dataset.get('name', 'unknown')
-            logger.info(f"Processing dataset: {dataset_name}")
-
-            try:
-                # Download data
-                response = self.retrieve_data(dataset['download_link'])
-
-                # Parse data
-                df = self.parse_data(response, dataset['file_type'])
-                logger.info(f"Parsed {len(df)} records")
-
-                # Standardize data
-                df_standardized = self.standardize_data(df, dataset)
-
-                # Save data
-                self.save_data(df_standardized, dataset_name)
-
-            except Exception as e:
-                logger.error(f"Failed to process {dataset_name}: {e}")
-                continue
-
-    def process_single_dataset(self, name: str) -> bool:
-        """Process all datasets from config file."""
-        datasets = self.load_config()
-        length = len(datasets)
-        flag = 0
+        return gdf
 
 
-        for dataset in datasets:
-            flag += 1
-            dataset_name = dataset.get('name', 'unknown')
-            if dataset_name == name:
-                logger.info(f"Processing dataset: {dataset_name}")
-                try:
-                    # Download data
-                    response = self.retrieve_data(dataset['download_link'])
-
-                    # Parse data
-                    df = self.parse_data(response, dataset['file_type'])
-                    logger.info(f"Parsed {len(df)} records")
-
-                    # Standardize data
-                    df_standardized = self.standardize_data(df, dataset)
-
-                    # Save data
-                    self.save_data(df_standardized, dataset_name)
-
-                except Exception as e:
-                    logger.error(f"Failed to process {dataset_name}: {e}")
-                    return False
-
-                logger.info(f"Reran {dataset_name} successfully")
-                return True
-
-            else:
-                if flag == length:
-                    logger.warning(f"Dataset '{name}' not found in config")
-                    return False
-                else:
-                    continue
-
-
-
-
+#Todo: move much of this functionality to main.py (we ideally don't want to run this file)
 def create_example_config():
     """Create an example configuration file."""
     config = [
@@ -302,7 +217,7 @@ def create_example_config():
     with open("datasets_config.json", "w", encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-    logger.info("Created example config file: datasets_config.json")
+    print("Created example config file: datasets_config.json")
 
 
 def add_dataset_programmatically(
@@ -382,7 +297,7 @@ def add_dataset_programmatically(
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-    logger.info(f"Successfully added dataset '{name}' to {config_path}")
+    print(f"Successfully added dataset '{name}' to {config_path}")
     return True
 
 
@@ -418,13 +333,13 @@ def add_dataset_to_config(config_path: str = "datasets_config.json"):
 
     # Validate required fields
     if not all([dataset["name"], dataset["download_link"], dataset["file_type"]]):
-        logger.error("Name, download_link, and file_type are required fields!")
+        print("Name, download_link, and file_type are required fields!")
         return False
 
     elif not all([dataset["column_mapping"]["Municipality"], dataset["column_mapping"]["Lon"],
                   dataset["column_mapping"]["Lat"], dataset["column_mapping"]["Latin_name"],
                   dataset["column_mapping"]["Height"], dataset["column_mapping"]["Year_of_planting"]]):
-        logger.error("All the different columns need to be mapped properly")
+        print("All the different columns need to be mapped properly")
         return False
 
     # Load existing config or create new one
@@ -433,7 +348,7 @@ def add_dataset_to_config(config_path: str = "datasets_config.json"):
             config = json.load(f)
     except FileNotFoundError:
         config = []
-        logger.info(f"Config file not found. Creating new one at {config_path}")
+        print(f"Config file not found. Creating new one at {config_path}")
 
     # Check for duplicate names
     if any(d.get('name') == dataset['name'] for d in config):
@@ -441,7 +356,7 @@ def add_dataset_to_config(config_path: str = "datasets_config.json"):
         if overwrite == 'yes':
             config = [d for d in config if d.get('name') != dataset['name']]
         else:
-            logger.info("Dataset not added.")
+            print("Dataset not added.")
             return False
 
     # Add new dataset
@@ -451,7 +366,7 @@ def add_dataset_to_config(config_path: str = "datasets_config.json"):
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-    logger.info(f"Successfully added dataset '{dataset['name']}' to {config_path}")
+    print(f"Successfully added dataset '{dataset['name']}' to {config_path}")
     return True
 
 
@@ -476,17 +391,17 @@ def add_datasets_from_json(
         with open(input_json_path, 'r', encoding='utf-8') as f:
             new_datasets = json.load(f)
     except FileNotFoundError:
-        logger.error(f"Input file not found: {input_json_path}")
+        print(f"Input file not found: {input_json_path}")
         return 0
     except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in input file: {e}")
+        print(f"Invalid JSON in input file: {e}")
         return 0
 
     # Ensure new_datasets is a list
     if isinstance(new_datasets, dict):
         new_datasets = [new_datasets]
     elif not isinstance(new_datasets, list):
-        logger.error("Input JSON must be a dictionary or list of dictionaries")
+        print("Input JSON must be a dictionary or list of dictionaries")
         return 0
 
     # Validate each dataset
@@ -495,12 +410,12 @@ def add_datasets_from_json(
 
     for i, dataset in enumerate(new_datasets):
         if not isinstance(dataset, dict):
-            logger.warning(f"Skipping item {i}: not a dictionary")
+            print(f"Skipping item {i}: not a dictionary")
             continue
 
         missing_fields = [field for field in required_fields if field not in dataset]
         if missing_fields:
-            logger.warning(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields {missing_fields}")
+            print(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields {missing_fields}")
             continue
 
         # Ensure file_type is uppercase
@@ -508,7 +423,7 @@ def add_datasets_from_json(
         valid_datasets.append(dataset)
 
     if not valid_datasets:
-        logger.error("No valid datasets found in input file")
+        print("No valid datasets found in input file")
         return 0
 
     # Load existing config or create new one
@@ -517,7 +432,7 @@ def add_datasets_from_json(
             config = json.load(f)
     except FileNotFoundError:
         config = []
-        logger.info(f"Config file not found. Creating new one at {config_path}")
+        print(f"Config file not found. Creating new one at {config_path}")
 
     # Process each valid dataset
     added_count = 0
@@ -530,20 +445,20 @@ def add_datasets_from_json(
             if overwrite_duplicates:
                 config = [d for d in config if d.get('name') != name]
                 config.append(dataset)
-                logger.info(f"Overwrote existing dataset: {name}")
+                print(f"Overwrote existing dataset: {name}")
                 added_count += 1
             else:
-                logger.warning(f"Skipping duplicate dataset: {name} (use --overwrite to replace)")
+                print(f"Skipping duplicate dataset: {name} (use --overwrite to replace)")
         else:
             config.append(dataset)
-            logger.info(f"Added new dataset: {name}")
+            print(f"Added new dataset: {name}")
             added_count += 1
 
     # Save updated config
     if added_count > 0:
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
-        logger.info(f"Successfully added {added_count} dataset(s) to {config_path}")
+        print(f"Successfully added {added_count} dataset(s) to {config_path}")
 
     return added_count
 
@@ -577,20 +492,20 @@ def remove_dataset(name: str, config_path: str = "datasets_config.json") -> bool
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
     except FileNotFoundError:
-        logger.error(f"Config file not found: {config_path}")
+        print(f"Config file not found: {config_path}")
         return False
 
     original_length = len(config)
     config = [d for d in config if d.get('name') != name]
 
     if len(config) == original_length:
-        logger.warning(f"Dataset '{name}' not found in config")
+        print(f"Dataset '{name}' not found in config")
         return False
 
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-    logger.info(f"Removed dataset '{name}' from {config_path}")
+    print(f"Removed dataset '{name}' from {config_path}")
     return True
 
 def rerun_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
@@ -599,7 +514,7 @@ def rerun_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
     except FileNotFoundError:
-        logger.error(f"Config file not found: {config_path}")
+        print(f"Config file not found: {config_path}")
         return False
 
 
@@ -673,11 +588,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.command == 'process':
-        processor = DatasetDownloader(args.config, args.output_dir)
-        processor.process_all_datasets()
+    # Todo: we dont run from here
+    # if args.command == 'process':
+    #     processor = DatasetDownloader(args.config, args.output_dir)
+    #     processor.process_all_datasets()
 
-    elif args.command == 'add':
+    if args.command == 'add':
         count = add_datasets_from_json(args.input_file, args.config, args.overwrite)
         if count > 0:
             print(f"\nSuccessfully added {count} dataset(s)")
@@ -693,10 +609,11 @@ if __name__ == "__main__":
         success = remove_dataset(args.name, args.config)
         sys.exit(0 if success else 1)
 
-    elif args.command == 'rerun':
-        processor = DatasetDownloader(args.config, args.output_dir)
-        success = processor.process_single_dataset(args.name)
-        sys.exit(0 if success else 1)
+    #Todo: we dont run from here
+    # elif args.command == 'rerun':
+    #     processor = DatasetDownloader(args.config, args.output_dir)
+    #     success = processor.process_single_dataset(args.name)
+    #     sys.exit(0 if success else 1)
 
     elif args.command == 'create-example':
         create_example_config()
@@ -706,8 +623,5 @@ if __name__ == "__main__":
 
 
     # Create example config file
+    #Todo maybe this could all be in a separate config_setup.py or something as an optional file where people can fuck about with the config file
     create_example_config()
-
-    # Process all datasets
-    processor = DatasetDownloader("datasets_config.json")
-    processor.process_all_datasets()
