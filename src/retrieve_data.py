@@ -174,6 +174,48 @@ class DatasetDownloader:
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
 
+    def process_single_dataset(self, name: str) -> bool:
+        """Process all datasets from config file."""
+        datasets = self.load_config()
+        length = len(datasets)
+        flag = 0
+
+
+        for dataset in datasets:
+            flag += 1
+            dataset_name = dataset.get('name', 'unknown')
+            if dataset_name == name:
+                logger.info(f"Processing dataset: {dataset_name}")
+                try:
+                    # Download data
+                    response = self.retrieve_data(dataset['download_link'])
+
+                    # Parse data
+                    df = self.parse_data(response, dataset['file_type'])
+                    logger.info(f"Parsed {len(df)} records")
+
+                    # Standardize data
+                    df_standardized = self.standardize_data(df, dataset)
+
+                    # Save data
+                    self.save_data(df_standardized, dataset_name)
+
+                except Exception as e:
+                    logger.error(f"Failed to process {dataset_name}: {e}")
+                    return False
+
+                logger.info(f"Reran {dataset_name} successfully")
+                return True
+
+            else:
+                if flag == length:
+                    logger.warning(f"Dataset '{name}' not found in config")
+                    return False
+                else:
+                    continue
+
+
+
 
 def create_example_config():
     """Create an example configuration file."""
@@ -551,6 +593,18 @@ def remove_dataset(name: str, config_path: str = "datasets_config.json") -> bool
     logger.info(f"Removed dataset '{name}' from {config_path}")
     return True
 
+def rerun_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
+    """Rerun a dataset from the config file by name."""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        logger.error(f"Config file not found: {config_path}")
+        return False
+
+
+    return True
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Dataset processor for downloading and standardizing datasets",
@@ -574,6 +628,9 @@ if __name__ == "__main__":
 
       # Remove a dataset
       python retrieve_data.py remove "Amsterdam"
+      
+      # Rerun a single dataset
+      python retrieve_data.py rerun "Amsterdam"
 
       # Create example config
       python retrieve_data.py create-example
@@ -606,6 +663,11 @@ if __name__ == "__main__":
     remove_parser.add_argument('name', help='Name of dataset to remove')
     remove_parser.add_argument('--config', default='datasets_config.json', help='Path to config file')
 
+    # Rerun a single dataset
+    rerun_parser = subparsers.add_parser('rerun', help='Rerun a single dataset from config')
+    rerun_parser.add_argument('name', help='Name of dataset to rerun')
+    rerun_parser.add_argument('--config', default='datasets_config.json', help='Path to config file')
+
     # Create example command
     example_parser = subparsers.add_parser('create-example', help='Create example config file')
 
@@ -629,6 +691,11 @@ if __name__ == "__main__":
 
     elif args.command == 'remove':
         success = remove_dataset(args.name, args.config)
+        sys.exit(0 if success else 1)
+
+    elif args.command == 'rerun':
+        processor = DatasetDownloader(args.config, args.output_dir)
+        success = processor.process_single_dataset(args.name)
         sys.exit(0 if success else 1)
 
     elif args.command == 'create-example':
