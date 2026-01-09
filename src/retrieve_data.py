@@ -8,6 +8,8 @@ import logging
 from io import StringIO
 from typing import Dict, Any#, List
 # from collections import Counter
+import geopandas as gpd
+import io
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -50,7 +52,7 @@ class DatasetDownloader:
             logger.error(f"Error retrieving data from {url}: {e}")
             raise
 
-    def parse_data(self, response: requests.Response, file_type: str) -> pd.DataFrame:
+    def parse_data(self, response: requests.Response, file_type: str):
         """
         Parse response data based on file type.
 
@@ -61,6 +63,20 @@ class DatasetDownloader:
         Returns:
             DataFrame containing parsed data
         """
+
+        if file_type.upper() == "CSV":
+            raise NotImplementedError("CSV file type parsing is not implemented in this snippet.")
+
+        content = io.BytesIO(response.content)
+
+        gdf = gpd.read_file(content)
+        # print(gdf.columns)
+    
+        #save to geopackage
+        # gpd.GeoDataFrame.to_file(gdf, self.output_dir / "output.gpkg", driver="GPKG")
+
+        return gdf
+
         if file_type.upper() == "JSON":
             data = response.json()
             # Handle GeoJSON format
@@ -72,7 +88,7 @@ class DatasetDownloader:
         else:
             raise ValueError(f"Unsupported file type: {file_type}")
 
-    def standardize_data(self, df: pd.DataFrame, dataset_info: Dict[str, Any]) -> pd.DataFrame:
+    def standardize_data(self, df, dataset_info: Dict[str, Any]):
         """
         Standardize dataset by renaming columns
 
@@ -135,7 +151,7 @@ class DatasetDownloader:
 
         return df
 
-    def save_data(self, df: pd.DataFrame, dataset_name: str):
+    def save_data(self, df, dataset_name: str):
         """
         Save standardized data to file.
 
@@ -144,9 +160,12 @@ class DatasetDownloader:
             dataset_name: Name for output file
         """
 
-        csv_path = self.output_dir / f"{dataset_name}_standardized.csv"
-        df.to_csv(csv_path, index=False)
-        logger.info(f"Saved CSV version to {csv_path}")
+        geopackage_path = self.output_dir / f"{dataset_name}_standardized.gpkg"
+        gpd.GeoDataFrame.to_file(df, geopackage_path, driver="GPKG")
+
+        # csv_path = self.output_dir / f"{dataset_name}_standardized.csv"
+        # df.to_csv(csv_path, index=False)
+        # logger.info(f"Saved CSV version to {csv_path}")
 
     def process_all_datasets(self):
         """Process all datasets from config file."""
