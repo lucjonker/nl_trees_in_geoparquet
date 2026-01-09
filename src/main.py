@@ -1,16 +1,16 @@
 import os
-from os.path import isdir
+# from os.path import isdir
 import logging
 import geoparquet_io as gpio
 # from geoparquet_io.cli.main import check_all
 from geoparquet_io.core.validate import validate_geoparquet
 
-import geopandas as gpd
-from pathlib import Path
+# import geopandas as gpd
+# from pathlib import Path
 
-from shapely import wkt
+# from shapely import wkt
 
-from src.retrieve_data import DatasetDownloader
+from retrieve_data import DatasetDownloader
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -71,38 +71,25 @@ CRS = "EPSG:28992"
 #             continue
 
 
-def convert_files():
-    # Todo Make config file have it's own directory?
-    processor = DatasetDownloader("datasets_config.json", logger=logger)
-    """Process all datasets from config file."""
-    datasets = processor.config
+def convert_files(processor, dataset, dataset_name):
 
-    for dataset in datasets:
-        dataset_name = dataset.get('name', 'unknown')
-        logger.info(f"Processing dataset: {dataset_name}")
+    # Download data
+    response = processor.retrieve_data(dataset['download_link'])
 
-        try:
-            # Download data
-            response = processor.retrieve_data(dataset['download_link'])
+    # Parse data
+    gdf = processor.parse_data(response, dataset['file_type'])
+    logger.info(f"Parsed {len(gdf)} records")
 
-            # Parse data
-            gdf = processor.parse_data(response, dataset['file_type'])
-            logger.info(f"Parsed {len(gdf)} records")
+    # Standardize data todo: fix this function so that it standardizes the dataframe without fucking it
+    # gdf_standardized = processor.standardize_data(gdf, dataset)
+    gdf_standardized = gdf
 
-            # Standardize data todo: fix this function so that it standardizes the dataframe without fucking it
-            # gdf_standardized = processor.standardize_data(gdf, dataset)
-            gdf_standardized = gdf
-
-            # Reproject
-            gdf_standardized = gdf_standardized.to_crs(28992)
-            # Remove rows where geometry is None or Empty
-            gdf_standardized = gdf_standardized[~(gdf_standardized.geometry.is_empty | gdf_standardized.geometry.isna())]
-            # Write as geoparquet file todo: put each parquet file in its own directory?
-            gdf_standardized.to_parquet(f'{CONVERTED_DIRECTORY}{dataset_name}.parquet')
-
-        except Exception as e:
-            logger.error(f"Failed to process {dataset_name}: {e}")
-            continue
+    # Reproject
+    gdf_standardized = gdf_standardized.to_crs(28992)
+    # Remove rows where geometry is None or Empty
+    gdf_standardized = gdf_standardized[~(gdf_standardized.geometry.is_empty | gdf_standardized.geometry.isna())]
+    # Write as geoparquet file todo: put each parquet file in its own directory?
+    gdf_standardized.to_parquet(f'{CONVERTED_DIRECTORY}{dataset_name}.parquet')
 
     # for file in os.listdir(RAW_DIRECTORY):
     #     full_path = os.path.join(RAW_DIRECTORY, file)
@@ -173,7 +160,20 @@ def validate():
 
 def main():
     print("---- COMMENCING GEOPARQUET CONVERSION ----")
-    convert_files()
+    # Todo Make config file have it's own directory?
+    processor = DatasetDownloader("datasets_config.json", logger=logger)
+    datasets = processor.config
+
+    os.makedirs(CONVERTED_DIRECTORY, exist_ok=True)
+
+    for dataset in datasets:
+        dataset_name = dataset.get('name', 'unknown')
+        logger.info(f"Processing dataset: {dataset_name}")
+        try:
+            convert_files(processor, dataset, dataset_name)
+        except Exception as e:
+            logger.error(f"Failed to process {dataset_name}: {e}")
+            continue
 
     print("---- COMMENCING GEOPARQUET HILBERT SORTING ----")
     add_space_filling_curve()

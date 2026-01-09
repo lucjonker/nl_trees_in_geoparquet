@@ -58,13 +58,15 @@ class DatasetDownloader:
         """
 
         if file_type.upper() == "CSV":
-            raise NotImplementedError("CSV file type parsing is not implemented in this snippet.")
+            content = StringIO(response.text)
+            gdf = gpd.read_file(content, driver="CSV")
+            # print(gdf.head())
+            
+        else:
+            content = io.BytesIO(response.content)
+            gdf = gpd.read_file(content)
 
-        content = io.BytesIO(response.content)
-        
-        gdf = gpd.read_file(content)
-
-        return gdf
+            return gdf
 
     #Todo: Fix standardize data to output valid geodataframes (is it still broken?)
     def standardize_data(self, gdf: gpd.GeoDataFrame, dataset_info: Dict[str, Any]) -> gpd.GeoDataFrame:

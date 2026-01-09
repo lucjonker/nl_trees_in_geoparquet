@@ -5,3 +5,5 @@
 .DS_Store
 /standardized_data
 datasets_config.json
+data/nl_trees
+__pycache__
