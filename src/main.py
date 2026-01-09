@@ -2,7 +2,7 @@ import os
 from os.path import isdir
 
 import geoparquet_io as gpio
-from geoparquet_io.cli.main import check_all
+# from geoparquet_io.cli.main import check_all
 from geoparquet_io.core.validate import validate_geoparquet
 
 
@@ -82,7 +82,7 @@ def convert_files():
 
 def add_space_filling_curve():
     for file in os.listdir(CONVERTED_DIRECTORY):
-        print(f"Adding bbox and performing hilbert sorting for file:", file, "...")
+        print(f"Adding bbox and performing hilbert sorting for file: {file}...")
         full_path = os.path.join(CONVERTED_DIRECTORY, file)
 
         table = gpio.read(full_path)
@@ -91,7 +91,7 @@ def add_space_filling_curve():
 
 def validate():
     for file in os.listdir(CONVERTED_DIRECTORY):
-        print(f"Performing validation for file:", file, "...")
+        print(f"Performing validation for file: {file}...")
         full_path = os.path.join(CONVERTED_DIRECTORY, file)
 
         validation_result = validate_geoparquet(full_path)
