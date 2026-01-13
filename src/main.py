@@ -1,6 +1,9 @@
+import argparse
 import os
 # from os.path import isdir
 import logging
+import sys
+
 import geoparquet_io as gpio
 # from geoparquet_io.cli.main import check_all
 from geoparquet_io.core.validate import validate_geoparquet
@@ -16,6 +19,7 @@ from retrieve_data import DatasetDownloader
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+#Todo: is this needed anymore
 SUPPORTED_TYPES = {
     ".geojson",
     ".json",
@@ -27,6 +31,8 @@ SUPPORTED_TYPES = {
 RAW_DIRECTORY = "../data/raw/"
 
 CONVERTED_DIRECTORY = "../data/nl_trees/"
+
+CONFIG_PATH = "../data/config/datasets_config.json"
 
 CRS = "EPSG:28992"
 
@@ -71,7 +77,7 @@ CRS = "EPSG:28992"
 #             continue
 
 
-def convert_files(processor, dataset, dataset_name):
+def convert_file(processor, dataset, dataset_name):
 
     # Download data
     response = processor.retrieve_data(dataset['download_link'])
@@ -89,7 +95,10 @@ def convert_files(processor, dataset, dataset_name):
     # Remove rows where geometry is None or Empty
     gdf_standardized = gdf_standardized[~(gdf_standardized.geometry.is_empty | gdf_standardized.geometry.isna())]
     # Write as geoparquet file todo: put each parquet file in its own directory?
-    gdf_standardized.to_parquet(f'{CONVERTED_DIRECTORY}{dataset_name}.parquet')
+    dataset_path = f'{CONVERTED_DIRECTORY}{dataset_name}.parquet'
+    gdf_standardized.to_parquet(dataset_path)
+
+    return dataset_path
 
     # for file in os.listdir(RAW_DIRECTORY):
     #     full_path = os.path.join(RAW_DIRECTORY, file)
@@ -136,52 +145,89 @@ def convert_files(processor, dataset, dataset_name):
         #     print(f"the file {full_path} is not supported")
 
 
-def add_space_filling_curve():
-    for file in os.listdir(CONVERTED_DIRECTORY):
-        print(f"Adding bbox and performing hilbert sorting for file: {file}...")
-        full_path = os.path.join(CONVERTED_DIRECTORY, file)
-
-        table = gpio.read(full_path)
-        table.add_bbox().sort_hilbert()
-        table.write(full_path)
+def add_space_filling_curve(dataset_path: str):
+    logger.info("Adding bbox and performing hilbert sorting")
+    table = gpio.read(dataset_path)
+    table.add_bbox().sort_hilbert()
+    table.write(dataset_path)
 
 
-def validate():
-    for file in os.listdir(CONVERTED_DIRECTORY):
-        print(f"Performing validation for file: {file}...")
-        full_path = os.path.join(CONVERTED_DIRECTORY, file)
+def validate(dataset_path: str):
+    logger.info("Performing validation")
 
-        validation_result = validate_geoparquet(full_path)
-        print(f"PASSED = {validation_result.is_valid}")
-        print(f"Passed {validation_result.passed_count}")
-        print(f"Failed {validation_result.failed_count}")
-        print(f"Warnings {validation_result.warning_count}")
+    validation_result = validate_geoparquet(dataset_path)
+    print(f"PASSED = {validation_result.is_valid}")
+    print(f"Passed {validation_result.passed_count}")
+    print(f"Failed {validation_result.failed_count}")
+    print(f"Warnings {validation_result.warning_count}")
 
 
 def main():
-    print("---- COMMENCING GEOPARQUET CONVERSION ----")
-    # Todo Make config file have it's own directory?
-    processor = DatasetDownloader("datasets_config.json", logger=logger)
-    datasets = processor.config
+    parser = argparse.ArgumentParser(
+        description="Pipeline for downloading geospatial tree datasets and converting them to parquet files",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+    Examples:
+      # Convert all datasets in the provided config file to parquet files
+      python main.py convert
+      
+      # Convert one dataset in the provided config file to parquet files
+      python main.py convert-one --name Groningen
+      
+      #todo: add one for deploying to s3
+      #todo: add one for generating STAC metadata
+            """
+    )
 
+    subparsers = parser.add_subparsers(dest='command', help='Command to execute')
+
+    # Convert all command
+    add_parser = subparsers.add_parser('convert', help='Convert all datasets described in the config file to parquet files')
+    add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
+
+    # Convert one command
+    add_parser = subparsers.add_parser('convert-one', help='Converts one dataset described in the config file to parquet files')
+    add_parser.add_argument('--name', help='Name of dataset to convert', required=True)
+    add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
+
+    #Todo: deploy to s3
+    #Todo: generate STAC
+
+    args = parser.parse_args()
+    processor = DatasetDownloader(CONFIG_PATH, logger=logger)
+    datasets = processor.config
     os.makedirs(CONVERTED_DIRECTORY, exist_ok=True)
 
-    for dataset in datasets:
-        dataset_name = dataset.get('name', 'unknown')
-        logger.info(f"Processing dataset: {dataset_name}")
-        try:
-            convert_files(processor, dataset, dataset_name)
-        except Exception as e:
-            logger.error(f"Failed to process {dataset_name}: {e}")
-            continue
+    if args.command == 'convert':
+        print("---- COMMENCING GEOPARQUET CONVERSION ----")
+        for dataset in datasets:
+            dataset_name = dataset.get('name', 'unknown')
+            logger.info(f"Processing dataset: {dataset_name}")
+            try:
+                dataset_path = convert_file(processor, dataset, dataset_name)
+                add_space_filling_curve(dataset_path)
+                validate(dataset_path)
+            except Exception as e:
+                logger.error(f"Failed to process {dataset_name}: {e}")
+                continue
+        sys.exit(0)
 
-    print("---- COMMENCING GEOPARQUET HILBERT SORTING ----")
-    add_space_filling_curve()
-
-    print("---- COMMENCING GEOPARQUET VALIDATION ----")
-    validate()
+    elif args.command == 'convert-one':
+        print(f"---- COMMENCING GEOPARQUET CONVERSION FOR {args.name} ----")
+        dataset_name = str.capitalize(args.name)
+        for dataset in [d for d in datasets if str.capitalize(d.get('name')) == dataset_name]:
+            logger.info(f"Processing dataset: {dataset_name}")
+            try:
+                dataset_path = convert_file(processor, dataset, dataset_name)
+                add_space_filling_curve(dataset_path)
+                validate(dataset_path)
+            except Exception as e:
+                logger.error(f"Failed to process {dataset_name}: {e}")
+                continue
+        sys.exit(0)
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
-    # unzip_dir("../data/raw/")
     main()

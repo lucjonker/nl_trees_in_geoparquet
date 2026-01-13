@@ -10,7 +10,6 @@
     "file_type": "JSON",
     "crs": "EPSG:4326",
     "column_mapping": {
-      "Municipality": "name",
       "Lon": "original_longitude_column",
       "Lat": "original_latitude_column",
       "Latin_name": "original_species_column",
