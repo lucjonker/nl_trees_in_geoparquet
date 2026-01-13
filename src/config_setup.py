@@ -11,6 +11,22 @@ def create_example_config():
     """Create an example configuration file."""
     config = [
         {
+            "name": "Amsterdam",
+            "file_type": "JSON",
+            "metadata": {
+                "data_owner": "Amsterdam (Gemeente)",
+                "email_address": "data-helpdesk@amsterdam.nl",
+                "language": "Dutch",
+                "primary_source": "https://api.data.amsterdam.nl/v1/bomen/v1/stamgegevens",
+                "download_link": "https://api.data.amsterdam.nl/v1/bomen/v1/stamgegevens?_format=geojson",
+            },
+            "column_mapping": {
+                "Latin_name": "soortnaam",
+                "Height": "boomhoogteklasseActueel",
+                "Year_of_planting": "jaarVanAanleg"
+            }
+        },
+        {
             "name": "Groningen",
             "file_type": "JSON",
             "metadata": {
@@ -31,12 +47,13 @@ def create_example_config():
             "file_type": "CSV",
             "lat_column": "LAT",
             "lon_column": "LON",
+            "CRS": "ESPG:4326",
             "metadata": {
                 "data_owner": "Dronten (Gemeente)",
                 "email_address": "data@dronten.nl",
                 "language": "Dutch",
                 "primary_source": "http://data.overheid.nl/dataset/bomenkaart-dronten",
-                "download_link": "https://nedgeoservices.nedgraphicscs.nl/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=topp:O10002_Bomenkaart_OD&outputFormat=csv",
+                "download_link": "https://nedgeoservices.nedgraphicscs.nl/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=topp:O10002_Bomenkaart_OD&outputFormat=csv"
             },
             "column_mapping": {
                 "Latin_name": "latijnse_naam",
@@ -46,13 +63,13 @@ def create_example_config():
         },
         {
             "name": "Eindhoven",
-            "file_type": "JSON",
+            "file_type": "PARQUET",
             "metadata": {
                 "data_owner": "Eindhoven (Gemeente)",
                 "email_address": "data@eindhoven.nl",
                 "language": "Dutch",
-                "primary_source": "https://data.eindhoven.nl/datasets/bomen",
-                "download_link": "https://data.eindhoven.nl/api/v2/catalog/datasets/bomen/exports/json",
+                "primary_source": "https://data.eindhoven.nl/explore/dataset/bomen/information/?disjunctive.beheerder&disjunctive.boomsoort&disjunctive.hoogte&disjunctive.eigenaar&disjunctive.eindbeeld&disjunctive.boomsoort_nederlands&disjunctive.status_ter_indicatie",
+                "download_link": "https://data.eindhoven.nl/api/explore/v2.1//catalog/datasets/bomen/exports/parquet"
             },
             "column_mapping": {
                 "Latin_name": "boomsoort",
@@ -64,12 +81,13 @@ def create_example_config():
             "name": "Nijmegen",
             "file_type": "CSV",
             "geometry_column": "GEOMETRIE",
+            "crs": "EPSG:28992",
             "metadata": {
                 "data_owner": "Eindhoven (Gemeente)",
                 "email_address": "opendata@nijmegen.nl",
                 "language": "Dutch",
                 "primary_source": "https://opendata.nijmegen.nl/dataset/bomen",
-                "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv",
+                "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv"
             },
             "column_mapping": {
                 "Latin_name": "BOOMSOORT",
@@ -114,13 +132,13 @@ def add_dataset_programmatically(
         lon_column: The name of the column containing the Longitude value (In the case of a CSV),
         lat_column: The name of the column containing the Latitude value (In the case of a CSV),
         geometry_column: The name of the column containing the geometry (In the case of a CSV),
+        crs: Coordinate reference system (In the case of a CSV)
         latin_name_column: The name of the column containing the Latin name,
         height_column: The name of the column containing the height,
         year_of_planting_column: The name of the column containing the year of planting,
         email_address: Contact email
         language: Language of dataset
         primary_source: Primary source URL
-        crs: Coordinate reference system
 
     Returns:
         True if successful, False otherwise
@@ -143,6 +161,7 @@ def add_dataset_programmatically(
     }
 
     if dataset["file_type"] == "CSV":
+        dataset["crs"] = crs
         if geometry_column:
             dataset["geometry_column"] = geometry_column
         elif lat_column and lon_column:
@@ -187,11 +206,12 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
         "name": input("Dataset name (e.g., 'Amsterdam'): ").strip(),
         "file_type": input("File type (JSON or CSV): ").strip().upper(),
         "geometry_column": input(
-            "The name of the column containing the geometry value (e.g., 'GEOM', 'GEOMETRIE'): ").strip(),
+            "The name of the column containing the geometry value, needed if you don't have lat/lon columns (e.g., 'GEOM', 'GEOMETRIE') (In the case of a CSV): ").strip(),
         "lon_column": input(
-            "The name of the column containing the Longitude value (e.g., 'LON, Y_coordinate'): ").strip(),
+            "The name of the column containing the Longitude value, needed if you don't have a geometry column (e.g., 'LON, Y_coordinate') (In the case of a CSV): ").strip(),
         "lat_column": input(
-            "The name of the column containing the Latitude value (e.g., 'LAT, X_coordinate'): ").strip(),
+            "The name of the column containing the Latitude value, needed if you don't have a geometry column (e.g., 'LAT, X_coordinate') (In the case of a CSV): ").strip(),
+        "crs": input("CRS (e.g., 'EPSG:4326') (In the case of a CSV): ").strip(),
         "metadata": {
             "data_owner": input("Data owner (e.g., 'Amsterdam (Gemeente)'): ").strip(),
             "email_address": input("Email address: ").strip(),

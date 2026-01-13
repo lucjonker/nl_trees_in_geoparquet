@@ -1,34 +1,16 @@
 import argparse
 import os
-# from os.path import isdir
 import logging
 import sys
 
 import geoparquet_io as gpio
-# from geoparquet_io.cli.main import check_all
 from geoparquet_io.core.validate import validate_geoparquet
-
-# import geopandas as gpd
-# from pathlib import Path
-
-# from shapely import wkt
 
 from retrieve_data import DatasetDownloader
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-#Todo: is this needed anymore
-SUPPORTED_TYPES = {
-    ".geojson",
-    ".json",
-    ".shp",
-    ".gpkg",
-    ".gdb",
-}
-
-RAW_DIRECTORY = "../data/raw/"
 
 CONVERTED_DIRECTORY = "../data/nl_trees/"
 
@@ -37,53 +19,12 @@ CONFIG_PATH = "../data/config/datasets_config.json"
 CRS = "EPSG:28992"
 
 
-# Todo implement processing only one dataset
-# """Process all datasets from config file."""
-# datasets = load_config()
-# length = len(datasets)
-# flag = 0
-#
-# for dataset in datasets:
-#     flag += 1
-#     dataset_name = dataset.get('name', 'unknown')
-#     if dataset_name == name:
-#         logger.info(f"Processing dataset: {dataset_name}")
-#         try:
-#             # Download data
-#             response = retrieve_data(dataset['download_link'])
-#
-#             # Parse data
-#             df = self.parse_data(response, dataset['file_type'])
-#             logger.info(f"Parsed {len(df)} records")
-#
-#             # Standardize data
-#             df_standardized = self.standardize_data(df, dataset)
-#
-#             # Save data
-#             self.save_data(df_standardized, dataset_name)
-#
-#         except Exception as e:
-#             logger.error(f"Failed to process {dataset_name}: {e}")
-#             return False
-#
-#         logger.info(f"Reran {dataset_name} successfully")
-#         return True
-#
-#     else:
-#         if flag == length:
-#             logger.warning(f"Dataset '{name}' not found in config")
-#             return False
-#         else:
-#             continue
-
-
 def convert_file(processor, dataset, dataset_name):
-
     # Download data
     response = processor.retrieve_data(dataset['metadata']['download_link'])
 
     # Parse data
-    gdf = processor.parse_data(response, dataset['file_type'])
+    gdf = processor.parse_data(response, dataset)
     logger.info(f"Parsed {len(gdf)} records")
 
     # Standardize data
@@ -93,9 +34,11 @@ def convert_file(processor, dataset, dataset_name):
     gdf_standardized = gdf_standardized.to_crs(28992)
     # Remove rows where geometry is None or Empty
     gdf_standardized = gdf_standardized[~(gdf_standardized.geometry.is_empty | gdf_standardized.geometry.isna())]
-    # Write as geoparquet file todo: put each parquet file in its own directory?
+    # Write as geoparquet file
     dataset_path = f'{CONVERTED_DIRECTORY}{dataset_name}/{dataset_name}.parquet'
-    print(dataset_path)
+
+    #If all of this worked, can make a directory and save
+    os.makedirs(f'{CONVERTED_DIRECTORY}{dataset_name}/', exist_ok=True)
     gdf_standardized.to_parquet(dataset_path)
 
     return dataset_path
@@ -112,10 +55,8 @@ def validate(dataset_path: str):
     logger.info("Performing validation")
 
     validation_result = validate_geoparquet(dataset_path)
-    print(f"PASSED = {validation_result.is_valid}")
-    print(f"Passed {validation_result.passed_count}")
-    print(f"Failed {validation_result.failed_count}")
-    print(f"Warnings {validation_result.warning_count}")
+    logger.info(f"Validation passed: {validation_result.is_valid} | Num passed tests: {validation_result.passed_count} "
+                f"| Num failed tests: {validation_result.failed_count} | Num warnings: {validation_result.warning_count}")
 
 
 def main():
@@ -138,16 +79,18 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='Command to execute')
 
     # Convert all command
-    add_parser = subparsers.add_parser('convert', help='Convert all datasets described in the config file to parquet files')
+    add_parser = subparsers.add_parser('convert',
+                                       help='Convert all datasets described in the config file to parquet files')
     add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
     # Convert one command
-    add_parser = subparsers.add_parser('convert-one', help='Converts one dataset described in the config file to parquet files')
+    add_parser = subparsers.add_parser('convert-one',
+                                       help='Converts one dataset described in the config file to parquet files')
     add_parser.add_argument('--name', help='Name of dataset to convert', required=True)
     add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
-    #Todo: deploy to s3
-    #Todo: generate STAC
+    # Todo: deploy to s3
+    # Todo: generate STAC
 
     args = parser.parse_args()
     config_path = args.config
@@ -183,7 +126,6 @@ def main():
 
 
 def process_dataset(dataset, dataset_name, processor: DatasetDownloader):
-    os.makedirs(f'{CONVERTED_DIRECTORY}{dataset_name}/', exist_ok=True)
     dataset_path = convert_file(processor, dataset, dataset_name)
     add_space_filling_curve(dataset_path)
     validate(dataset_path)

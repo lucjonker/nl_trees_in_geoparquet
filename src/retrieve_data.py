@@ -1,10 +1,14 @@
 import io
 import json
+
+import pandas as pd
 import requests
 import geopandas as gpd
 import logging
 from io import StringIO
 from typing import Dict, Any  # , List
+
+from shapely import wkt
 
 
 class DatasetDownloader:
@@ -43,38 +47,43 @@ class DatasetDownloader:
             self.logger.error(f"Error retrieving data from {url}: {e}")
             raise
 
-    def parse_data(self, response: requests.Response, file_type: str):
+    def parse_data(self, response: requests.Response, dataset_info: Dict[str, Any]):
         """
         Parse response data based on file type.
 
         Args:
             response: Response object from API
-            file_type: Type of file (JSON, CSV, etc.)
+            dataset_info: Dictionary with dataset metadata and column mappings
 
         Returns:
             DataFrame containing parsed data
         """
-
-        # elif file_extension == ".csv":
-        #     df = gpd.read_file(full_path, use_arrow=True)
-        #     df['geometry'] = df['GEOM'].apply(wkt.loads)
-        #     gdf = gpd.GeoDataFrame(df, crs='epsg:28992')
-        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
-        #     gdf.to_parquet(path)
-        # Move files that are already .parquet
-        # elif file_extension == ".parquet":
-        #     print(f"Already a parquet file: {file}, reprojecting and writing to nl_trees...")
-        #     gdf = gpd.read_parquet(full_path)
-        #     # Reproject
-        #     gdf = gdf.to_crs(28992)
-        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
-        #     gdf.to_parquet(path)
+        file_type = dataset_info.get('file_type', None)
 
         if file_type.upper() == "CSV":
             content = StringIO(response.text)
-            gdf = gpd.read_file(content, driver="CSV")
-            # print(gdf.head())
+            geometry_column = dataset_info.get('geometry_column', None)
+            lat_column = dataset_info.get('lat_column', None)
+            lon_column = dataset_info.get('lon_column', None)
+            crs = dataset_info.get('crs', None)
 
+            if geometry_column:
+                df = pd.read_csv(content)
+                df['geometry'] = df[geometry_column].apply(wkt.loads)
+                gdf = gpd.GeoDataFrame(df, crs=crs)
+                return gdf
+            elif lat_column and lon_column:
+                df = pd.read_csv(content)
+                gdf = gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_xy(df[lon_column], df[lat_column]), crs=crs)
+                return gdf
+            else:
+                self.logger.error(f"CSV file missing required metadata (lat/lon columns or geometrycolumn)")
+                return None
+
+        elif file_type.upper() == "PARQUET":
+            content = io.BytesIO(response.content)
+            gdf = gpd.read_parquet(content)
+            return gdf
         else:
             content = io.BytesIO(response.content)
             gdf = gpd.read_file(content)
@@ -92,12 +101,17 @@ class DatasetDownloader:
         Returns:
             Standardized DataFrame with only mapped columns
         """
-        # Get column mappings if they exist
+        # Get column mappings
         column_mapping = dataset_info.get('column_mapping', {})
-        values = column_mapping.values()
+        if not column_mapping:
+            self.logger.error(f"No column mapping found for dataset {dataset_info}")
+            return gdf
 
+        values = column_mapping.values()
         rename = {v: k for k, v in column_mapping.items()}
         drop = []
+
+        metadata = dataset_info.get('metadata', {})
 
         # For each column
         for column in gdf.columns:
@@ -107,8 +121,11 @@ class DatasetDownloader:
                 if column != gdf.geometry.name:
                     drop.append(column)
 
-        #Todo: include metadata in returned geodataframe (data owner, email address, etc)
         standardized = gdf.rename(columns=rename)
         standardized.drop(columns=drop, inplace=True)
+
+        # Add parquet metadata
+        for key, value in metadata.items():
+            standardized[key] = value
 
         return standardized
