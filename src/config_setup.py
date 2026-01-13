@@ -12,37 +12,33 @@ def create_example_config():
     config = [
         {
             "name": "Groningen",
-            "data_owner": "Groningen (Gemeente)",
-            "email_address": "opendata@groningen.nl",
-            "update_frequency": "Monthly",
-            "language": "Dutch",
-            "primary_source": "https://data.groningen.nl/dataset/bomen-gemeente-groningen",
-            "download_link": "https://maps.groningen.nl/geoserver/geo-data/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geo-data:Bomen%20gemeente%20Groningen&maxFeatures=1000000&outputFormat=application/json&srsName=EPSG:4326&format_options=id_policy:reference_no=false",
             "file_type": "JSON",
-            "crs": "EPSG:4326",
+            "metadata": {
+                "data_owner": "Groningen (Gemeente)",
+                "email_address": "opendata@groningen.nl",
+                "language": "Dutch",
+                "primary_source": "https://data.groningen.nl/dataset/bomen-gemeente-groningen",
+                "download_link": "https://maps.groningen.nl/geoserver/geo-data/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geo-data:Bomen%20gemeente%20Groningen&maxFeatures=1000000&outputFormat=application/json&srsName=EPSG:4326&format_options=id_policy:reference_no=false"
+            },
             "column_mapping": {
-                "Municipality": "Groningen",
-                "Lon": "properties.LON",
-                "Lat": "properties.LAT",
-                "Latin_name": "properties.LATIJNSE_NAAM",
-                "Height": "properties.BOOMHOOGTE",
-                "Year_of_planting": "properties.KIEMJAAR"
+                "Latin_name": "LATIJNSE_NAAM",
+                "Height": "BOOMHOOGTE",
+                "Year_of_planting": "KIEMJAAR"
             }
         },
         {
             "name": "Dronten",
-            "data_owner": "Dronten (Gemeente)",
-            "email_address": "data@dronten.nl",
-            "update_frequency": None,
-            "language": "Dutch",
-            "primary_source": "http://data.overheid.nl/dataset/bomenkaart-dronten",
-            "download_link": "https://nedgeoservices.nedgraphicscs.nl/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=topp:O10002_Bomenkaart_OD&outputFormat=csv",
             "file_type": "CSV",
-            "crs": "EPSG:4326",
+            "lat_column": "LAT",
+            "lon_column": "LON",
+            "metadata": {
+                "data_owner": "Dronten (Gemeente)",
+                "email_address": "data@dronten.nl",
+                "language": "Dutch",
+                "primary_source": "http://data.overheid.nl/dataset/bomenkaart-dronten",
+                "download_link": "https://nedgeoservices.nedgraphicscs.nl/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=topp:O10002_Bomenkaart_OD&outputFormat=csv",
+            },
             "column_mapping": {
-                "Municipality": "Dronten",
-                "Lon": "lon",
-                "Lat": "lat",
                 "Latin_name": "latijnse_naam",
                 "Height": "hoogte",
                 "Year_of_planting": "plantjaar"
@@ -50,38 +46,32 @@ def create_example_config():
         },
         {
             "name": "Eindhoven",
-            "data_owner": "Eindhoven (Gemeente)",
-            "email_address": "data@eindhoven.nl",
-            "update_frequency": "Quarterly",
-            "language": "Dutch",
-            "primary_source": "https://data.eindhoven.nl/datasets/bomen",
-            "download_link": "https://data.eindhoven.nl/api/v2/catalog/datasets/bomen/exports/json",
             "file_type": "JSON",
-            "crs": "EPSG:4326",
+            "metadata": {
+                "data_owner": "Eindhoven (Gemeente)",
+                "email_address": "data@eindhoven.nl",
+                "language": "Dutch",
+                "primary_source": "https://data.eindhoven.nl/datasets/bomen",
+                "download_link": "https://data.eindhoven.nl/api/v2/catalog/datasets/bomen/exports/json",
+            },
             "column_mapping": {
-                "Municipality": "Eindhoven",
-                "Lon": "geo_point_2d.lon",
-                "Lat": "geo_point_2d.lat",
                 "Latin_name": "boomsoort",
                 "Height": "hoogte",
                 "Year_of_planting": "plantjaar"
             }
         },
-
         {
             "name": "Nijmegen",
-            "data_owner": "Nijmegen (Gemeente)",
-            "email_address": "opendata@nijmegen.nl",
-            "update_frequency": None,
-            "language": "Dutch",
-            "primary_source": "https://opendata.nijmegen.nl/dataset/bomen",
-            "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv",
             "file_type": "CSV",
-            "crs": "EPSG:28992",
+            "geometry_column": "GEOMETRIE",
+            "metadata": {
+                "data_owner": "Eindhoven (Gemeente)",
+                "email_address": "opendata@nijmegen.nl",
+                "language": "Dutch",
+                "primary_source": "https://opendata.nijmegen.nl/dataset/bomen",
+                "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv",
+            },
             "column_mapping": {
-                "Municipality": "Nijmegen",
-                "Lon": "GEOMETRIE",
-                "Lat": "GEOMETRIE",
                 "Latin_name": "BOOMSOORT",
                 "Height": "HOOGTE_EXACT",
                 "Year_of_planting": "PLANTJAAR"
@@ -103,11 +93,11 @@ def add_dataset_programmatically(
         file_type: str,
         lon_column: str,
         lat_column: str,
+        geometry_column: str,
         latin_name_column: str,
         height_column: str,
         year_of_planting_column: str,
         email_address: str = "",
-        update_frequency: str = None,
         language: str = "Dutch",
         primary_source: str = "",
         crs: str = "EPSG:4326",
@@ -121,13 +111,13 @@ def add_dataset_programmatically(
         data_owner: Organization owning the data
         download_link: API URL to download data
         file_type: Type of file (JSON or CSV)
-        lon_column: The name of the column containing the Longitude value,
-        lat_column: The name of the column containing the Latitude value,
+        lon_column: The name of the column containing the Longitude value (In the case of a CSV),
+        lat_column: The name of the column containing the Latitude value (In the case of a CSV),
+        geometry_column: The name of the column containing the geometry (In the case of a CSV),
         latin_name_column: The name of the column containing the Latin name,
         height_column: The name of the column containing the height,
         year_of_planting_column: The name of the column containing the year of planting,
         email_address: Contact email
-        update_frequency: How often data is updated
         language: Language of dataset
         primary_source: Primary source URL
         crs: Coordinate reference system
@@ -137,23 +127,30 @@ def add_dataset_programmatically(
     """
     dataset = {
         "name": name,
-        "data_owner": data_owner,
-        "email_address": email_address,
-        "update_frequency": update_frequency,
-        "language": language,
-        "primary_source": primary_source,
-        "download_link": download_link,
         "file_type": file_type.upper(),
-        "crs": crs,
+        "metadata": {
+            "data_owner": data_owner,
+            "email_address": email_address,
+            "language": language,
+            "primary_source": primary_source,
+            "download_link": download_link,
+        },
         "column_mapping": {
-            "Municipality": name,
-            "Lon": lon_column,
-            "Lat": lat_column,
             "Latin_name": latin_name_column,
             "Height": height_column,
             "Year_of_planting": year_of_planting_column
         }
     }
+
+    if dataset["file_type"] == "CSV":
+        if geometry_column:
+            dataset["geometry_column"] = geometry_column
+        elif lat_column and lon_column:
+            dataset["lat_column"] = lat_column
+            dataset["lon_column"] = lon_column
+        else:
+            print("CSVs require either a geometry column or lat/lon column(s)")
+            return False
 
     # Load existing config or create new one
     try:
@@ -188,20 +185,21 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
     # Collect dataset information
     dataset = {
         "name": input("Dataset name (e.g., 'Amsterdam'): ").strip(),
-        "data_owner": input("Data owner (e.g., 'Amsterdam (Gemeente)'): ").strip(),
-        "email_address": input("Email address: ").strip(),
-        "update_frequency": input("Update frequency (e.g., 'Monthly', 'Weekly', or leave empty): ").strip() or None,
-        "language": input("Language (e.g., 'Dutch'): ").strip(),
-        "primary_source": input("Primary source URL: ").strip(),
-        "download_link": input("Download link (API URL): ").strip(),
         "file_type": input("File type (JSON or CSV): ").strip().upper(),
-        "crs": input("CRS (e.g., 'EPSG:4326'): ").strip(),
+        "geometry_column": input(
+            "The name of the column containing the geometry value (e.g., 'GEOM', 'GEOMETRIE'): ").strip(),
+        "lon_column": input(
+            "The name of the column containing the Longitude value (e.g., 'LON, Y_coordinate'): ").strip(),
+        "lat_column": input(
+            "The name of the column containing the Latitude value (e.g., 'LAT, X_coordinate'): ").strip(),
+        "metadata": {
+            "data_owner": input("Data owner (e.g., 'Amsterdam (Gemeente)'): ").strip(),
+            "email_address": input("Email address: ").strip(),
+            "language": input("Language (e.g., 'Dutch'): ").strip(),
+            "primary_source": input("Primary source URL: ").strip(),
+            "download_link": input("Download link (API URL): ").strip(),
+        },
         "column_mapping": {
-            "Municipality": input("Municipality name (e.g., 'Amsterdam'): ").strip(),
-            "Lon": input(
-                "The name of the column containing the Longitude value (e.g., 'LON, Y_coordinate', 'GEOM'): ").strip(),
-            "Lat": input(
-                "The name of the column containing the Latitude value (e.g., 'LAT, X_coordinate', 'GEOM'): ").strip(),
             "Latin_name": input(
                 "The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
             "Height": input("The name of the column containing the height (e.g., 'Hoogte', 'Boomhoogte'): ").strip(),
@@ -210,43 +208,45 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
         }
     }
 
-    # Validate required fields
-    if not all([dataset["name"], dataset["download_link"], dataset["file_type"]]):
-        print("Name, download_link, and file_type are required fields!")
-        return False
+    #Todo: fix all of this with the new config format
 
-    elif not all([dataset["column_mapping"]["Municipality"], dataset["column_mapping"]["Lon"],
-                  dataset["column_mapping"]["Lat"], dataset["column_mapping"]["Latin_name"],
-                  dataset["column_mapping"]["Height"], dataset["column_mapping"]["Year_of_planting"]]):
-        print("All the different columns need to be mapped properly")
-        return False
-
-    # Load existing config or create new one
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        config = []
-        print(f"Config file not found. Creating new one at {config_path}")
-
-    # Check for duplicate names
-    if any(d.get('name') == dataset['name'] for d in config):
-        overwrite = input(f"\nDataset '{dataset['name']}' already exists. Overwrite? (yes/no): ").lower()
-        if overwrite == 'yes':
-            config = [d for d in config if d.get('name') != dataset['name']]
-        else:
-            print("Dataset not added.")
-            return False
-
-    # Add new dataset
-    config.append(dataset)
-
-    # Save updated config
-    with open(config_path, 'w', encoding='utf-8') as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-
-    print(f"Successfully added dataset '{dataset['name']}' to {config_path}")
-    return True
+    # # Validate required fields
+    # if not all([dataset["name"], dataset["download_link"], dataset["file_type"]]):
+    #     print("Name, download_link, and file_type are required fields!")
+    #     return False
+    #
+    # elif not all([dataset["column_mapping"]["Municipality"], dataset["column_mapping"]["Lon"],
+    #               dataset["column_mapping"]["Lat"], dataset["column_mapping"]["Latin_name"],
+    #               dataset["column_mapping"]["Height"], dataset["column_mapping"]["Year_of_planting"]]):
+    #     print("All the different columns need to be mapped properly")
+    #     return False
+    #
+    # # Load existing config or create new one
+    # try:
+    #     with open(config_path, 'r', encoding='utf-8') as f:
+    #         config = json.load(f)
+    # except FileNotFoundError:
+    #     config = []
+    #     print(f"Config file not found. Creating new one at {config_path}")
+    #
+    # # Check for duplicate names
+    # if any(d.get('name') == dataset['name'] for d in config):
+    #     overwrite = input(f"\nDataset '{dataset['name']}' already exists. Overwrite? (yes/no): ").lower()
+    #     if overwrite == 'yes':
+    #         config = [d for d in config if d.get('name') != dataset['name']]
+    #     else:
+    #         print("Dataset not added.")
+    #         return False
+    #
+    # # Add new dataset
+    # config.append(dataset)
+    #
+    # # Save updated config
+    # with open(config_path, 'w', encoding='utf-8') as f:
+    #     json.dump(config, f, indent=2, ensure_ascii=False)
+    #
+    # print(f"Successfully added dataset '{dataset['name']}' to {config_path}")
+    # return True
 
 
 def add_datasets_from_json(
@@ -283,120 +283,113 @@ def add_datasets_from_json(
         print("Input JSON must be a dictionary or list of dictionaries")
         return 0
 
-    # Validate each dataset
-    required_fields = ["name", "download_link", "file_type"]
-    valid_datasets = []
+    # Todo: fix all of this with the new config format
 
-    for i, dataset in enumerate(new_datasets):
-        if not isinstance(dataset, dict):
-            print(f"Skipping item {i}: not a dictionary")
-            continue
-
-        missing_fields = [field for field in required_fields if field not in dataset]
-        if missing_fields:
-            print(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields {missing_fields}")
-            continue
-
-        # Ensure file_type is uppercase
-        dataset['file_type'] = dataset['file_type'].upper()
-        valid_datasets.append(dataset)
-
-    if not valid_datasets:
-        print("No valid datasets found in input file")
-        return 0
-
-    # Load existing config or create new one
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        config = []
-        print(f"Config file not found. Creating new one at {config_path}")
-
-    # Process each valid dataset
-    added_count = 0
-    existing_names = {d.get('name') for d in config}
-
-    for dataset in valid_datasets:
-        name = dataset['name']
-
-        if name in existing_names:
-            if overwrite_duplicates:
-                config = [d for d in config if d.get('name') != name]
-                config.append(dataset)
-                print(f"Overwrote existing dataset: {name}")
-                added_count += 1
-            else:
-                print(f"Skipping duplicate dataset: {name} (use --overwrite to replace)")
-        else:
-            config.append(dataset)
-            print(f"Added new dataset: {name}")
-            added_count += 1
-
-    # Save updated config
-    if added_count > 0:
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
-        print(f"Successfully added {added_count} dataset(s) to {config_path}")
-
-    return added_count
+    # # Validate each dataset
+    # required_fields = ["name", "download_link", "file_type"]
+    # valid_datasets = []
+    #
+    # for i, dataset in enumerate(new_datasets):
+    #     if not isinstance(dataset, dict):
+    #         print(f"Skipping item {i}: not a dictionary")
+    #         continue
+    #
+    #     missing_fields = [field for field in required_fields if field not in dataset]
+    #     if missing_fields:
+    #         print(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields {missing_fields}")
+    #         continue
+    #
+    #     # Ensure file_type is uppercase
+    #     dataset['file_type'] = dataset['file_type'].upper()
+    #     valid_datasets.append(dataset)
+    #
+    # if not valid_datasets:
+    #     print("No valid datasets found in input file")
+    #     return 0
+    #
+    # # Load existing config or create new one
+    # try:
+    #     with open(config_path, 'r', encoding='utf-8') as f:
+    #         config = json.load(f)
+    # except FileNotFoundError:
+    #     config = []
+    #     print(f"Config file not found. Creating new one at {config_path}")
+    #
+    # # Process each valid dataset
+    # added_count = 0
+    # existing_names = {d.get('name') for d in config}
+    #
+    # for dataset in valid_datasets:
+    #     name = dataset['name']
+    #
+    #     if name in existing_names:
+    #         if overwrite_duplicates:
+    #             config = [d for d in config if d.get('name') != name]
+    #             config.append(dataset)
+    #             print(f"Overwrote existing dataset: {name}")
+    #             added_count += 1
+    #         else:
+    #             print(f"Skipping duplicate dataset: {name} (use --overwrite to replace)")
+    #     else:
+    #         config.append(dataset)
+    #         print(f"Added new dataset: {name}")
+    #         added_count += 1
+    #
+    # # Save updated config
+    # if added_count > 0:
+    #     with open(config_path, 'w', encoding='utf-8') as f:
+    #         json.dump(config, f, indent=2, ensure_ascii=False)
+    #     print(f"Successfully added {added_count} dataset(s) to {config_path}")
+    #
+    # return added_count
 
 
 def list_datasets(config_path: str = "datasets_config.json"):
-    """List all datasets in the config file."""
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-
-        if not config:
-            print("No datasets in config file.")
-            return
-
-        print(f"\n=== Datasets in {config_path} ===\n")
-        for i, dataset in enumerate(config, 1):
-            print(f"{i}. {dataset.get('name', 'Unknown')}")
-            print(f"   Owner: {dataset.get('data_owner', 'N/A')}")
-            print(f"   Type: {dataset.get('file_type', 'N/A')}")
-            print(f"   Update: {dataset.get('update_frequency', 'N/A')}")
-            print()
-    except FileNotFoundError:
-        print(f"Config file not found: {config_path}")
-    except json.JSONDecodeError:
-        print(f"Invalid JSON in config file: {config_path}")
+    print("todo")
+    # Todo: fix all of this with the new config format
+    # """List all datasets in the config file."""
+    # try:
+    #     with open(config_path, 'r', encoding='utf-8') as f:
+    #         config = json.load(f)
+    #
+    #     if not config:
+    #         print("No datasets in config file.")
+    #         return
+    #
+    #     print(f"\n=== Datasets in {config_path} ===\n")
+    #     for i, dataset in enumerate(config, 1):
+    #         print(f"{i}. {dataset.get('name', 'Unknown')}")
+    #         print(f"   Owner: {dataset.get('data_owner', 'N/A')}")
+    #         print(f"   Type: {dataset.get('file_type', 'N/A')}")
+    #         print(f"   Update: {dataset.get('update_frequency', 'N/A')}")
+    #         print()
+    # except FileNotFoundError:
+    #     print(f"Config file not found: {config_path}")
+    # except json.JSONDecodeError:
+    #     print(f"Invalid JSON in config file: {config_path}")
 
 
 def remove_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
-    """Remove a dataset from the config file by name."""
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        print(f"Config file not found: {config_path}")
-        return False
-
-    original_length = len(config)
-    config = [d for d in config if d.get('name') != name]
-
-    if len(config) == original_length:
-        print(f"Dataset '{name}' not found in config")
-        return False
-
-    with open(config_path, 'w', encoding='utf-8') as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-
-    print(f"Removed dataset '{name}' from {config_path}")
-    return True
-
-
-def rerun_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
-    """Rerun a dataset from the config file by name."""
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        print(f"Config file not found: {config_path}")
-        return False
-
+    # Todo: fix all of this with the new config format
+    # """Remove a dataset from the config file by name."""
+    # try:
+    #     with open(config_path, 'r', encoding='utf-8') as f:
+    #         config = json.load(f)
+    # except FileNotFoundError:
+    #     print(f"Config file not found: {config_path}")
+    #     return False
+    #
+    # original_length = len(config)
+    # config = [d for d in config if d.get('name') != name]
+    #
+    # if len(config) == original_length:
+    #     print(f"Dataset '{name}' not found in config")
+    #     return False
+    #
+    # with open(config_path, 'w', encoding='utf-8') as f:
+    #     json.dump(config, f, indent=2, ensure_ascii=False)
+    #
+    # print(f"Removed dataset '{name}' from {config_path}")
     return True
 
 

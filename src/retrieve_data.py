@@ -55,6 +55,21 @@ class DatasetDownloader:
             DataFrame containing parsed data
         """
 
+        # elif file_extension == ".csv":
+        #     df = gpd.read_file(full_path, use_arrow=True)
+        #     df['geometry'] = df['GEOM'].apply(wkt.loads)
+        #     gdf = gpd.GeoDataFrame(df, crs='epsg:28992')
+        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
+        #     gdf.to_parquet(path)
+        # Move files that are already .parquet
+        # elif file_extension == ".parquet":
+        #     print(f"Already a parquet file: {file}, reprojecting and writing to nl_trees...")
+        #     gdf = gpd.read_parquet(full_path)
+        #     # Reproject
+        #     gdf = gdf.to_crs(28992)
+        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
+        #     gdf.to_parquet(path)
+
         if file_type.upper() == "CSV":
             content = StringIO(response.text)
             gdf = gpd.read_file(content, driver="CSV")
@@ -66,7 +81,6 @@ class DatasetDownloader:
 
             return gdf
 
-    # Todo: Fix standardize data to output valid geodataframes (is it still broken?)
     def standardize_data(self, gdf: gpd.GeoDataFrame, dataset_info: Dict[str, Any]) -> gpd.GeoDataFrame:
         """
         Standardize dataset by renaming columns
@@ -80,52 +94,21 @@ class DatasetDownloader:
         """
         # Get column mappings if they exist
         column_mapping = dataset_info.get('column_mapping', {})
+        values = column_mapping.values()
 
-        if column_mapping:
-            # Create reverse mapping (original -> standard)
-            rename_dict = {}
-            for standard_name, original_name in column_mapping.items():
-                if standard_name == "Municipality":
-                    continue
-                elif original_name in gdf.columns:
-                    rename_dict[original_name] = standard_name
-                else:
-                    self.logger.warning(f"Column '{original_name}' not found in dataset. Skipping.")
+        rename = {v: k for k, v in column_mapping.items()}
+        drop = []
 
-            # Rename columns
-            gdf = gdf.rename(columns=rename_dict)
+        # For each column
+        for column in gdf.columns:
+            # If said column is not in our column mapping
+            if column not in values:
+                # Make sure not to drop the active geometry column
+                if column != gdf.geometry.name:
+                    drop.append(column)
 
-            # Keep only the standardized columns that exist
-            standard_columns = [col for col in column_mapping.keys() if col in gdf.columns]
-            gdf = gdf[standard_columns]
-            gdf['Municipality'] = column_mapping['Municipality']
+        #Todo: include metadata in returned geodataframe (data owner, email address, etc)
+        standardized = gdf.rename(columns=rename)
+        standardized.drop(columns=drop, inplace=True)
 
-            # If lat - lon came from the same column, they were merged and need to be split up again
-            has_lat = "Lat" in gdf.columns
-            has_lon = "Lon" in gdf.columns
-
-            if not (has_lat and has_lon):
-                # Look for a column containing POINT(lat lon)
-                point_col = next(
-                    (col for col in gdf.columns if gdf[col].astype(str).str.contains("POINT", na=False).any()),
-                    None
-                )
-
-                if point_col is None:
-                    raise ValueError("No Lat/Lon columns and no POINT column found.")
-
-                self.logger.info(f"Splitting lat/lon from column '{point_col}'")
-
-                # Extract coordinates
-                coords = gdf[point_col].str.extract(
-                    r"POINT\s*\(\s*([-0-9\.]+)\s+([-0-9\.]+)\s*\)"
-                )
-
-                gdf["Lon"] = coords[0]
-                gdf["Lat"] = coords[1]
-
-            self.logger.info(f"Standardized columns: {', '.join(gdf.columns)}")
-
-            self.logger.info(f"Standardized {len(standard_columns)} columns: {', '.join(standard_columns)}")
-
-        return gdf
+        return standardized

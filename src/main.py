@@ -80,76 +80,32 @@ CRS = "EPSG:28992"
 def convert_file(processor, dataset, dataset_name):
 
     # Download data
-    response = processor.retrieve_data(dataset['download_link'])
+    response = processor.retrieve_data(dataset['metadata']['download_link'])
 
     # Parse data
     gdf = processor.parse_data(response, dataset['file_type'])
     logger.info(f"Parsed {len(gdf)} records")
 
-    # Standardize data todo: fix this function so that it standardizes the dataframe without fucking it
-    # gdf_standardized = processor.standardize_data(gdf, dataset)
-    gdf_standardized = gdf
+    # Standardize data
+    gdf_standardized = processor.standardize_data(gdf, dataset)
 
     # Reproject
     gdf_standardized = gdf_standardized.to_crs(28992)
     # Remove rows where geometry is None or Empty
     gdf_standardized = gdf_standardized[~(gdf_standardized.geometry.is_empty | gdf_standardized.geometry.isna())]
     # Write as geoparquet file todo: put each parquet file in its own directory?
-    dataset_path = f'{CONVERTED_DIRECTORY}{dataset_name}.parquet'
+    dataset_path = f'{CONVERTED_DIRECTORY}{dataset_name}/{dataset_name}.parquet'
+    print(dataset_path)
     gdf_standardized.to_parquet(dataset_path)
 
     return dataset_path
-
-    # for file in os.listdir(RAW_DIRECTORY):
-    #     full_path = os.path.join(RAW_DIRECTORY, file)
-    #     filename, file_extension = os.path.splitext(file)
-    #
-    #     # If it is a directory, check inside for supported filetypes
-    #     if isdir(full_path):
-    #         for inner_file in os.listdir(full_path):
-    #             inner_filename, inner_file_extension = os.path.splitext(inner_file)
-    #             if inner_file_extension in SUPPORTED_TYPES:
-    #                 full_path = os.path.join(full_path, inner_file)
-    #                 file_extension = inner_file_extension
-    #                 break
-
-        # # Check that the file extension is supported by geoparquet-io
-        # if file_extension in SUPPORTED_TYPES:
-        #     print("Converting", file, "...")
-        #
-        #     gdf = gpd.read_file(full_path, use_arrow=True)
-        #     # Reproject
-        #     gdf = gdf.to_crs(28992)
-        #     # Remove rows where geometry is None or Empty
-        #     gdf = gdf[~(gdf.geometry.is_empty | gdf.geometry.isna())]
-        #     # Write as geoparquet file
-        #     gdf.to_parquet(f'{CONVERTED_DIRECTORY}{filename}.parquet')
-        #
-        # elif file_extension == ".csv":
-        #     df = gpd.read_file(full_path, use_arrow=True)
-        #     df['geometry'] = df['GEOM'].apply(wkt.loads)
-        #     gdf = gpd.GeoDataFrame(df, crs='epsg:28992')
-        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
-        #     gdf.to_parquet(path)
-        # Move files that are already .parquet
-        # elif file_extension == ".parquet":
-        #     print(f"Already a parquet file: {file}, reprojecting and writing to nl_trees...")
-        #     gdf = gpd.read_parquet(full_path)
-        #     # Reproject
-        #     gdf = gdf.to_crs(28992)
-        #     path = Path(f'{CONVERTED_DIRECTORY}{filename}.parquet')
-        #     gdf.to_parquet(path)
-
-        # Error if unsupported filetype
-        # else:
-        #     print(f"the file {full_path} is not supported")
 
 
 def add_space_filling_curve(dataset_path: str):
     logger.info("Adding bbox and performing hilbert sorting")
     table = gpio.read(dataset_path)
     table.add_bbox().sort_hilbert()
-    table.write(dataset_path)
+    table.write(dataset_path, compression='ZSTD', compression_level=15)
 
 
 def validate(dataset_path: str):
@@ -194,9 +150,10 @@ def main():
     #Todo: generate STAC
 
     args = parser.parse_args()
-    processor = DatasetDownloader(CONFIG_PATH, logger=logger)
+    config_path = args.config
+
+    processor = DatasetDownloader(config_path, logger=logger)
     datasets = processor.config
-    os.makedirs(CONVERTED_DIRECTORY, exist_ok=True)
 
     if args.command == 'convert':
         print("---- COMMENCING GEOPARQUET CONVERSION ----")
@@ -204,9 +161,7 @@ def main():
             dataset_name = dataset.get('name', 'unknown')
             logger.info(f"Processing dataset: {dataset_name}")
             try:
-                dataset_path = convert_file(processor, dataset, dataset_name)
-                add_space_filling_curve(dataset_path)
-                validate(dataset_path)
+                process_dataset(dataset, dataset_name, processor)
             except Exception as e:
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
@@ -218,15 +173,20 @@ def main():
         for dataset in [d for d in datasets if str.capitalize(d.get('name')) == dataset_name]:
             logger.info(f"Processing dataset: {dataset_name}")
             try:
-                dataset_path = convert_file(processor, dataset, dataset_name)
-                add_space_filling_curve(dataset_path)
-                validate(dataset_path)
+                process_dataset(dataset, dataset_name, processor)
             except Exception as e:
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
         sys.exit(0)
     else:
         parser.print_help()
+
+
+def process_dataset(dataset, dataset_name, processor: DatasetDownloader):
+    os.makedirs(f'{CONVERTED_DIRECTORY}{dataset_name}/', exist_ok=True)
+    dataset_path = convert_file(processor, dataset, dataset_name)
+    add_space_filling_curve(dataset_path)
+    validate(dataset_path)
 
 
 if __name__ == "__main__":
