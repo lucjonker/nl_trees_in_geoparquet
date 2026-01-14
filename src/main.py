@@ -5,6 +5,7 @@ import sys
 
 import geoparquet_io as gpio
 from geoparquet_io.core.validate import validate_geoparquet
+from geoparquet_io.core.stac import generate_stac_item, generate_stac_collection
 
 from retrieve_data import DatasetDownloader
 
@@ -58,6 +59,40 @@ def validate(dataset_path: str):
     logger.info(f"Validation passed: {validation_result.is_valid} | Num passed tests: {validation_result.passed_count} "
                 f"| Num failed tests: {validation_result.failed_count} | Num warnings: {validation_result.warning_count}")
 
+def generate_all_stac(base_directory):
+    """
+    Scans the data directory, generates an Item for each city subfolder,
+    and then generates a root Collection.
+    """
+    
+    # 1. Generate Items for each sub-folder (City)
+    # We look for directories inside nl_trees
+    subdirs = [d for d in os.listdir(base_directory) 
+               if os.path.isdir(os.path.join(base_directory, d))]
+
+    for city in subdirs:
+        city_path = os.path.join(base_directory, city)
+        parquet_file = os.path.join(city_path, f"{city}.parquet")
+
+        if os.path.exists(parquet_file):
+            logger.info(f"Generating STAC Item for: {city}")
+            generate_stac_item(
+                parquet_file,
+                bucket_prefix="s3://bucket/path/to/data/nl_trees/",
+            )
+        else:
+            logger.warning(f"Skipping {city}: No parquet file found at {parquet_file}")
+
+    # 2. Generate the root Collection
+    logger.info("Generating STAC Collection for all datasets...")
+    
+    generate_stac_collection(
+        partition_dir=base_directory,
+        bucket_prefix="s3://bucket/path/to/data/nl_trees/",
+    )
+
+    # 3. Validate
+    #TODO: find out what the validate_stac function is called in version 0.8.0 
 
 def main():
     parser = argparse.ArgumentParser(
@@ -90,10 +125,12 @@ def main():
     add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
     # Todo: deploy to s3
-    # Todo: generate STAC
+
+    # Generate STAC command
+    subparsers.add_parser('stac', help='Generate STAC Items and Collection for existing parquet files')
 
     args = parser.parse_args()
-    config_path = args.config
+    config_path = CONFIG_PATH
 
     processor = DatasetDownloader(config_path, logger=logger)
     datasets = processor.config
@@ -109,7 +146,6 @@ def main():
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
         sys.exit(0)
-
     elif args.command == 'convert-one':
         print(f"---- COMMENCING GEOPARQUET CONVERSION FOR {args.name} ----")
         dataset_name = str.capitalize(args.name)
@@ -121,6 +157,11 @@ def main():
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
         sys.exit(0)
+    elif args.command == 'stac':
+        raise NotImplementedError("STAC generation doesnt work yet, we need to host the data first.")
+        print("---- COMMENCING STAC METADATA GENERATION ----")
+        generate_all_stac(CONVERTED_DIRECTORY)
+        sys.exit(0)
     else:
         parser.print_help()
 
@@ -129,7 +170,6 @@ def process_dataset(dataset, dataset_name, processor: DatasetDownloader):
     dataset_path = convert_file(processor, dataset, dataset_name)
     add_space_filling_curve(dataset_path)
     validate(dataset_path)
-
 
 if __name__ == "__main__":
     main()

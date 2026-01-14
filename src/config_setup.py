@@ -97,6 +97,9 @@ def create_example_config():
         }
     ]
 
+    #make sure CONFIG_PATH exists
+    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+
     with open(CONFIG_PATH, "w", encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
