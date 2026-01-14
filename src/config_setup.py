@@ -11,6 +11,22 @@ def create_example_config():
     """Create an example configuration file."""
     config = [
         {
+            "name": "Utrecht",
+            "file_type": "JSON",
+            "metadata": {
+                "data_owner": "Utrecht (Gemeente)",
+                "email_address": "none",
+                "language": "Dutch",
+                "primary_source": "https://data.overheid.nl/dataset/utrecht-bomenkaart-update-2024#panel-resources",
+                "download_link": "https://arcgis.com/sharing/rest/content/items/7e2404cf7fba4bb087935f9cdb51f053/data",
+            },
+            "column_mapping": {
+                "Latin_name": "Wetenschappelijke_naam",
+                "Height": "none",
+                "Year_of_planting": "Plantjaar"
+            }
+        },
+        {
             "name": "Delft",
             "file_type": "JSON",
             "metadata": {
