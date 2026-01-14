@@ -196,3 +196,4 @@ def process_dataset(dataset, dataset_name, processor: DatasetDownloader):
 
 if __name__ == "__main__":
     main()
+    #TODO: should we add a small demo of querying the data for some arbitrary bbox?

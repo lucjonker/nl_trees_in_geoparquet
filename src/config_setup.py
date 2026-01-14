@@ -11,6 +11,22 @@ def create_example_config():
     """Create an example configuration file."""
     config = [
         {
+            "name": "The_Hague",
+            "file_type": "SHP",
+            "metadata": {
+                "data_owner": "Gemeente 's-Gravenhage (Gemeente)",
+                "email_address": "none",
+                "language": "Dutch",
+                "primary_source": "https://data.overheid.nl/dataset/313fa20b-7608-447d-8882-3ae2b989bc5d",
+                "download_link": "https://ckan.dataplatform.nl/dataset/2487aed5-961b-4add-ab88-2400fa6901f6/resource/038fc5b4-c086-4de1-99a1-9284685e0e6d/download/bomen-shape.zip",
+            },
+            "column_mapping": {
+                "Latin_name": "SRT_WETENS",
+                "Height": "none",
+                "Year_of_planting": "none"
+            }
+        },
+        {
             "name": "Utrecht",
             "file_type": "JSON",
             "metadata": {
