@@ -6,6 +6,7 @@ import sys
 import geoparquet_io as gpio
 from geoparquet_io.core.validate import validate_geoparquet
 from geoparquet_io.core.stac import generate_stac_item, generate_stac_collection
+from geoparquet_io.core.upload import upload, upload_directory_async
 
 from retrieve_data import DatasetDownloader
 
@@ -94,6 +95,21 @@ def generate_all_stac(base_directory):
     # 3. Validate
     #TODO: find out what the validate_stac function is called in version 0.8.0 
 
+def upload_to_source_coop(local_dir: str, remote_path: str):
+    """
+    Uploads the local directory to Source.Coop (S3) using geoparquet-io.
+    Requires AWS credentials to be set in environment variables.
+    """
+    logger.info(f"Uploading {local_dir} to {remote_path}...")
+    #TODO: setup credentials with an .env file and stuff
+    # There is also upload_directory_async which might be better/faster
+    try:
+        upload(local_dir, remote_path)
+        logger.info("Upload completed successfully.")
+    except Exception as e:
+        logger.error(f"Upload failed: {e}")
+        raise
+
 def main():
     parser = argparse.ArgumentParser(
         description="Pipeline for downloading geospatial tree datasets and converting them to parquet files",
@@ -124,7 +140,9 @@ def main():
     add_parser.add_argument('--name', help='Name of dataset to convert', required=True)
     add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
-    # Todo: deploy to s3
+    # Push parquet files to remote
+    upload_parser = subparsers.add_parser('upload', help='Push parquet files to remote S3/Source.Coop')
+    upload_parser.add_argument('--bucket', help='Target S3 URI (e.g., s3://bucket-name/path/)', required=True)
 
     # Generate STAC command
     subparsers.add_parser('stac', help='Generate STAC Items and Collection for existing parquet files')
@@ -156,6 +174,11 @@ def main():
             except Exception as e:
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
+        sys.exit(0)
+    elif args.command == 'upload':
+        raise NotImplementedError("Need to get a source.coop account first.")
+        print(f"---- COMMENCING UPLOAD TO {args.bucket} ----")
+        upload_to_source_coop(CONVERTED_DIRECTORY, args.bucket)
         sys.exit(0)
     elif args.command == 'stac':
         raise NotImplementedError("STAC generation doesnt work yet, we need to host the data first.")
