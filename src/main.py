@@ -148,12 +148,12 @@ def main():
     subparsers.add_parser('stac', help='Generate STAC Items and Collection for existing parquet files')
 
     args = parser.parse_args()
-    config_path = CONFIG_PATH
-
-    processor = DatasetDownloader(config_path, logger=logger)
-    datasets = processor.config
 
     if args.command == 'convert':
+        config_path = args.config
+        processor = DatasetDownloader(config_path, logger=logger)
+        datasets = processor.config
+
         print("---- COMMENCING GEOPARQUET CONVERSION ----")
         for dataset in datasets:
             dataset_name = dataset.get('name', 'unknown')
@@ -165,6 +165,11 @@ def main():
                 continue
         sys.exit(0)
     elif args.command == 'convert-one':
+        config_path = args.config
+
+        processor = DatasetDownloader(config_path, logger=logger)
+        datasets = processor.config
+
         print(f"---- COMMENCING GEOPARQUET CONVERSION FOR {args.name} ----")
         dataset_name = str.capitalize(args.name)
         for dataset in [d for d in datasets if str.capitalize(d.get('name')) == dataset_name]:
