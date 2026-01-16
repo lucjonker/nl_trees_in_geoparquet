@@ -156,6 +156,7 @@ def main():
 
         print("---- COMMENCING GEOPARQUET CONVERSION ----")
         for dataset in datasets:
+            print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
             dataset_name = dataset.get('name', 'unknown')
             logger.info(f"Processing dataset: {dataset_name}")
             try:

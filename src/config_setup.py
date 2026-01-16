@@ -50,7 +50,7 @@ def create_example_config():
                 "email_address": "none",
                 "language": "Dutch",
                 "primary_source": "https://data.delft.nl/datasets/bomen-in-beheer-door-gemeente-delft-1/about",
-                "download_link": "https://services3.arcgis.com/j07voPd56xoB4c87/arcgis/rest/services/Bomen in beheer door gemeente Delft/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson",
+                "download_link": "https://hub.arcgis.com/api/v3/datasets/d83a50486b384bfe8038c2d762f5e628_0/downloads/data?format=geojson&spatialRefId=4326&where=1=1",
             },
             "column_mapping": {
                 "Latin_name": "BOOMSORTIMENT",
