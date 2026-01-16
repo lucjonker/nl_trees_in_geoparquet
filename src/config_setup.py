@@ -27,6 +27,22 @@ def create_example_config():
             }
         },
         {
+            "name": "Hilversum",
+            "file_type": "JSON",
+            "metadata": {
+                "data_owner": "Hilversum (Gemeente)",
+                "email_address": "none",
+                "language": "Dutch",
+                "primary_source": "https://open-hilversum.hub.arcgis.com/datasets/Hilversum::bomen/about",
+                "download_link": "https://services-eu1.arcgis.com/YcscSJ1XstO6iVhP/arcgis/rest/services/Bomen_8b628/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson"
+            },
+            "column_mapping": {
+                "Latin_name": "SOORTNAAM",
+                "Height": "BOOMHOOGTEKLASSEACTUEEL",
+                "Year_of_planting": "JAARVANAANLEG"
+            }
+        },
+        {
             "name": "Utrecht",
             "file_type": "JSON",
             "metadata": {
