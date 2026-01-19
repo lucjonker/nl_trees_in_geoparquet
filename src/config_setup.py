@@ -22,8 +22,6 @@ def create_example_config():
             },
             "column_mapping": {
                 "Latin_name": "SRT_WETENS",
-                "Height": "none",
-                "Year_of_planting": "none"
             }
         },
         {
@@ -54,7 +52,6 @@ def create_example_config():
             },
             "column_mapping": {
                 "Latin_name": "Wetenschappelijke_naam",
-                "Height": "none",
                 "Year_of_planting": "Plantjaar"
             }
         },
