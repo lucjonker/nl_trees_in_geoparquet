@@ -58,7 +58,7 @@ def convert_file(processor, dataset, dataset_name, local_path=None):
 def add_space_filling_curve(dataset_path: str):
     logger.info("Adding bbox and performing hilbert sorting")
     table = gpio.read(dataset_path)
-    table.add_bbox().sort_hilbert()
+    table = table.add_bbox().sort_hilbert()
     table.write(dataset_path, compression='ZSTD', compression_level=15)
 
 
