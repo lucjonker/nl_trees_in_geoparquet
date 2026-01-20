@@ -21,7 +21,7 @@ CONFIG_PATH = "../data/config/datasets_config.json"
 
 TEMPLATE_PATH = "../data/config/dataset_template.json"
 
-DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-trees-in-nl"
+DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees"
 
 CRS = "EPSG:28992"
 
@@ -70,7 +70,7 @@ def validate(dataset_path: str):
                 f"| Num failed tests: {validation_result.failed_count} | Num warnings: {validation_result.warning_count}")
 
 
-def generate_all_stac(base_directory):
+def generate_all_stac(base_directory: str, bucket: str):
     """
     Scans the data directory, generates an Item for each city subfolder,
     and then generates a root Collection.
@@ -87,54 +87,30 @@ def generate_all_stac(base_directory):
 
         if os.path.exists(parquet_file):
             logger.info(f"Generating STAC Item for: {city}")
-            generate_stac_item(
-                parquet_file,
-                bucket_prefix="s3://bucket/path/to/data/nl_trees/",
-            )
+            # generate_stac_item(
+            #     parquet_file,
+            #     bucket_prefix=bucket,
+            # )
         else:
             logger.warning(f"Skipping {city}: No parquet file found at {parquet_file}")
 
     # 2. Generate the root Collection
     logger.info("Generating STAC Collection for all datasets...")
 
-    generate_stac_collection(
-        partition_dir=base_directory,
-        bucket_prefix="s3://bucket/path/to/data/nl_trees/",
-    )
+    # generate_stac_collection(
+    #     partition_dir=base_directory,
+    #     bucket_prefix=bucket,
+    # )
 
     # 3. Validate
     # TODO: find out what the validate_stac function is called in version 0.8.0
 
-
-def upload_to_source_coop(local_dir: str, remote_path: str):
-    """
-    Uploads the local directory to Source.Coop (S3) using geoparquet-io.
-    Requires AWS credentials to be set in environment variables.
-    """
-    logger.info(f"Uploading {local_dir} to {remote_path}...")
-    thing = gpio.read_partition(local_dir, allow_schema_diff=True)
-    # thing.upload(
-    #     'us-west-2.opendata.source.coop',
-    #     s3_endpoint = 'roorda-tudelft/public-trees-in-nl/',
-    #     s3_use_ssl = False
-    # )
-
-    # #TODO: setup credentials with an .env file and stuff
-    # # There is also upload_directory_async which might be better/faster
-    # try:
-    #     upload(local_dir, remote_path)
-    #     logger.info("Upload completed successfully.")
-    # except Exception as e:
-    #     logger.error(f"Upload failed: {e}")
-    #     raise
-
-
 def upload_to_s3(dataset_path: str, dataset_name: str, bucket: str):
     logger.info(f"Uploading: {dataset_name}")
     (gpio
-    .read(dataset_path)
-    .upload(f'{bucket}/nl_trees/{dataset_name}/{dataset_name}.parquet')
-    )
+     .read(dataset_path)
+     .upload(f'{bucket}/{dataset_name}/{dataset_name}.parquet')
+     )
 
 
 def main():
@@ -179,10 +155,12 @@ def main():
     upload_one_parser = subparsers.add_parser('upload-one', help='Push one parquet file to remote S3/Source.Coop')
     upload_one_parser.add_argument('--name', help='Name of dataset to upload', required=True)
     upload_one_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
-    upload_one_parser.add_argument('--bucket', default=DEFAULT_BUCKET, help='Target S3 URI (e.g., s3://bucket-name/path/)')
+    upload_one_parser.add_argument('--bucket', default=DEFAULT_BUCKET,
+                                   help='Target S3 URI (e.g., s3://bucket-name/path/)')
 
     # Generate STAC command
     stac_parser = subparsers.add_parser('stac', help='Generate STAC Items and Collection for existing parquet files')
+    stac_parser.add_argument('--bucket', default=DEFAULT_BUCKET, help='Target S3 URI (e.g., s3://bucket-name/path/)')
 
     args = parser.parse_args()
 
@@ -222,7 +200,7 @@ def main():
         sys.exit(0)
     elif args.command == 'upload':
         print(f"---- COMMENCING UPLOAD TO {args.bucket} ----")
-        #Todo: This currently assumes you have already exported the bucket credentials, might have to automate?
+        # Todo: This currently assumes you have already exported the bucket credentials, might have to automate?
         config_path = args.config
         datasets = None
         with open(config_path, 'r') as f:
@@ -244,9 +222,9 @@ def main():
         upload_to_source_coop(CONVERTED_DIRECTORY, args.bucket)
         sys.exit(0)
     elif args.command == 'stac':
-        raise NotImplementedError("STAC generation doesnt work yet, we need to host the data first.")
         print("---- COMMENCING STAC METADATA GENERATION ----")
-        generate_all_stac(CONVERTED_DIRECTORY)
+        bucket = args.bucket
+        generate_all_stac(CONVERTED_DIRECTORY, bucket)
         sys.exit(0)
     else:
         parser.print_help()
