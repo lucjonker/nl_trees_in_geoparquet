@@ -4,6 +4,9 @@ import os
 import logging
 import sys
 import geopandas as gpd
+import pandas as pd
+import tempfile
+import warnings
 import geoparquet_io as gpio
 from geoparquet_io.core.validate import validate_geoparquet
 from geoparquet_io.core.stac import generate_stac_item, generate_stac_collection
@@ -28,13 +31,47 @@ CRS = "EPSG:28992"
 
 def convert_file(processor, dataset, dataset_name, local_path=None):
     gdf = None
+    file_path = local_path
+    temp_file = None
+
     if local_path:
-        gdf = gpd.read_file(local_path)
+        file_path = local_path
     else:
-        # Download data
+        # Download data and save to temp file
         response = processor.retrieve_data(dataset['metadata']['download_link'])
-        # Parse data
-        gdf = processor.parse_data(response, dataset)
+
+        # Save to temp file to check for layers
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.tmp')
+        temp_file.write(response.content)
+        temp_file.close()
+        file_path = temp_file.name
+
+    # Try to check for multiple layers
+    try:
+        # Supress warnings of wrong file suffix (.tmp works)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning, message='.*non conformant file extension.*')
+            layers = gpd.list_layers(file_path)
+
+        if len(layers) > 1:
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=RuntimeWarning, message='.*non conformant file extension.*')
+                gdf = combine_multiple_layers(file_path, layers)
+        else:
+            gdf = gpd.read_file(file_path)
+
+    except Exception as e:
+        # Not a multi-layer format, read normally
+        if local_path:
+            gdf = gpd.read_file(local_path)
+        else:
+            # Parse using the processor's parse_data method
+            response = processor.retrieve_data(dataset['metadata']['download_link'])
+            gdf = processor.parse_data(response, dataset)
+
+    # Clean up temp file if created
+    if temp_file:
+        os.unlink(temp_file.name)
 
     logger.info(f"Parsed {len(gdf)} records")
 
@@ -54,6 +91,21 @@ def convert_file(processor, dataset, dataset_name, local_path=None):
 
     return dataset_path
 
+
+def combine_multiple_layers(file_path, layers):
+    logger.info(f"Found {len(layers)} layers in file")
+    # Read and combine multiple layers
+    gdfs = []
+    for layer_name in layers['name']:
+        layer_gdf = gpd.read_file(file_path, layer=layer_name)
+        logger.info(f"Layer '{layer_name}': {len(layer_gdf)} records")
+        gdfs.append(layer_gdf)
+
+    # Combine all layers into one GeoDataFrame
+    gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True))
+    logger.info(f"Combined {len(layers)} layers into {len(gdf)} total records")
+
+    return gdf
 
 def add_space_filling_curve(dataset_path: str):
     logger.info("Adding bbox and performing hilbert sorting")
