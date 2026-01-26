@@ -11,6 +11,7 @@
   "column_mapping": {
     "Latin_name": "original_species_column",
     "Height": "original_height_column",
-    "Year_of_planting": "original_year_column"
+    "Year_of_planting": "original_year_column",
+    "Trunk_diameter": "original_diameter_column"
   }
 }
