@@ -528,27 +528,26 @@ def list_datasets(config_path):
         print(f"Invalid JSON in config file: {config_path}")
 
 
-def remove_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
-    # Todo: fix all of this with the new config format
-    # """Remove a dataset from the config file by name."""
-    # try:
-    #     with open(config_path, 'r', encoding='utf-8') as f:
-    #         config = json.load(f)
-    # except FileNotFoundError:
-    #     print(f"Config file not found: {config_path}")
-    #     return False
-    #
-    # original_length = len(config)
-    # config = [d for d in config if d.get('name') != name]
-    #
-    # if len(config) == original_length:
-    #     print(f"Dataset '{name}' not found in config")
-    #     return False
-    #
-    # with open(config_path, 'w', encoding='utf-8') as f:
-    #     json.dump(config, f, indent=2, ensure_ascii=False)
-    #
-    # print(f"Removed dataset '{name}' from {config_path}")
+def remove_dataset(name: str, config_path) -> bool:
+    """Remove a dataset from the config file by name."""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        print(f"Config file not found: {config_path}")
+        return False
+    
+    original_length = len(config)
+    config = [d for d in config if d.get('name') != name]
+    
+    if len(config) == original_length:
+        print(f"Dataset '{name}' not found in config")
+        return False
+    
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+    
+    print(f"Removed dataset '{name}' from {config_path}")
     return True
 
 
@@ -596,8 +595,8 @@ if __name__ == "__main__":
 
     # Remove command
     remove_parser = subparsers.add_parser('remove', help='Remove dataset from config')
-    remove_parser.add_argument('name', help='Name of dataset to remove')
-    remove_parser.add_argument('--config', default='datasets_config.json', help='Path to config file')
+    remove_parser.add_argument('--name', help='Name of dataset to remove')
+    remove_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
     # Create example command
     example_parser = subparsers.add_parser('create-example', help='Create example config file')
