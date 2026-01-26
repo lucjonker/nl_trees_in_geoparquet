@@ -438,65 +438,61 @@ def add_datasets_from_json(
         print("Input JSON must be a dictionary or list of dictionaries")
         return 0
 
-    # Todo: fix all of this with the new config format
-
-    # # Validate each dataset
-    # required_fields = ["name", "download_link", "file_type"]
-    # valid_datasets = []
-    #
-    # for i, dataset in enumerate(new_datasets):
-    #     if not isinstance(dataset, dict):
-    #         print(f"Skipping item {i}: not a dictionary")
-    #         continue
-    #
-    #     missing_fields = [field for field in required_fields if field not in dataset]
-    #     if missing_fields:
-    #         print(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields {missing_fields}")
-    #         continue
-    #
-    #     # Ensure file_type is uppercase
-    #     dataset['file_type'] = dataset['file_type'].upper()
-    #     valid_datasets.append(dataset)
-    #
-    # if not valid_datasets:
-    #     print("No valid datasets found in input file")
-    #     return 0
-    #
-    # # Load existing config or create new one
-    # try:
-    #     with open(config_path, 'r', encoding='utf-8') as f:
-    #         config = json.load(f)
-    # except FileNotFoundError:
-    #     config = []
-    #     print(f"Config file not found. Creating new one at {config_path}")
-    #
-    # # Process each valid dataset
-    # added_count = 0
-    # existing_names = {d.get('name') for d in config}
-    #
-    # for dataset in valid_datasets:
-    #     name = dataset['name']
-    #
-    #     if name in existing_names:
-    #         if overwrite_duplicates:
-    #             config = [d for d in config if d.get('name') != name]
-    #             config.append(dataset)
-    #             print(f"Overwrote existing dataset: {name}")
-    #             added_count += 1
-    #         else:
-    #             print(f"Skipping duplicate dataset: {name} (use --overwrite to replace)")
-    #     else:
-    #         config.append(dataset)
-    #         print(f"Added new dataset: {name}")
-    #         added_count += 1
-    #
-    # # Save updated config
-    # if added_count > 0:
-    #     with open(config_path, 'w', encoding='utf-8') as f:
-    #         json.dump(config, f, indent=2, ensure_ascii=False)
-    #     print(f"Successfully added {added_count} dataset(s) to {config_path}")
-    #
-    # return added_count
+    # Validate each dataset
+    valid_datasets = []
+    
+    for i, dataset in enumerate(new_datasets):
+        if not isinstance(dataset, dict):
+            print(f"Skipping item {i}: not a dictionary")
+            continue
+    
+        if not (dataset.get("name") and dataset.get("file_type") and dataset.get("metadata", {}).get("download_link")):
+            print(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields")
+            continue
+    
+        # Ensure file_type is uppercase
+        dataset['file_type'] = dataset['file_type'].upper()
+        valid_datasets.append(dataset)
+    
+    if not valid_datasets:
+        print("No valid datasets found in input file")
+        return 0
+    
+    # Load existing config or create new one
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        config = []
+        print(f"Config file not found. Creating new one at {config_path}")
+    
+    # Process each valid dataset
+    added_count = 0
+    existing_names = {d.get('name') for d in config}
+    
+    for dataset in valid_datasets:
+        name = dataset['name']
+    
+        if name in existing_names:
+            if overwrite_duplicates:
+                config = [d for d in config if d.get('name') != name]
+                config.append(dataset)
+                print(f"Overwrote existing dataset: {name}")
+                added_count += 1
+            else:
+                print(f"Skipping duplicate dataset: {name} (use --overwrite to replace)")
+        else:
+            config.append(dataset)
+            print(f"Added new dataset: {name}")
+            added_count += 1
+    
+    # Save updated config
+    if added_count > 0:
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        print(f"Successfully added {added_count} dataset(s) to {config_path}")
+    
+    return added_count
 
 
 def list_datasets(config_path):
@@ -581,12 +577,12 @@ if __name__ == "__main__":
     # Add from JSON command
     add_parser = subparsers.add_parser('add', help='Add datasets from JSON file')
     add_parser.add_argument('input_file', help='Path to JSON file with dataset(s)')
-    add_parser.add_argument('--config', default='datasets_config.json', help='Path to config file')
+    add_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
     add_parser.add_argument('--overwrite', action='store_true', help='Overwrite duplicate datasets')
 
     # Add interactive command
     interactive_parser = subparsers.add_parser('add-interactive', help='Add dataset interactively')
-    interactive_parser.add_argument('--config', default='datasets_config.json', help='Path to config file')
+    interactive_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
     # List command
     list_parser = subparsers.add_parser('list', help='List all datasets in config')
