@@ -12,7 +12,7 @@ def clean(value):
         string = str(value).strip() if value else ""
         return string if string and string.lower() != "none" else "none"
 
-def create_config_from_sheet():
+def create_config_from_sheet(config_path):
     """Shortened and refactored creator for datasets_config.json."""
     map_path = r"../data/raw/Tree-datasets(Column_mapping).csv"
     data_path = r"../data/raw/Tree-datasets(Datasets).csv"
@@ -62,12 +62,11 @@ def create_config_from_sheet():
             config.append(entry)
 
     # 3. Save resulting configuration
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, "w", encoding='utf-8') as f:
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    with open(config_path, "w", encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-    print(f"Successfully created {CONFIG_PATH} with {len(config)} datasets.")
-
+    print(f"Successfully created {config_path} with {len(config)} datasets.")
 
 def create_example_config():
     """Create an example configuration file."""
@@ -603,6 +602,7 @@ if __name__ == "__main__":
 
     # Read sheet command
     sheet_parser = subparsers.add_parser('read-sheet', help='Create config from CSV sheets')
+    sheet_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
     args = parser.parse_args()
 
@@ -623,7 +623,7 @@ if __name__ == "__main__":
         sys.exit(0 if success else 1)
 
     elif args.command == 'read-sheet':
-        create_config_from_sheet()
+        create_config_from_sheet(args.config)
 
     elif args.command == 'create-example':
         create_example_config()
