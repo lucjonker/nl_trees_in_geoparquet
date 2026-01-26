@@ -3,8 +3,70 @@ import json
 import os
 import sys
 from os.path import exists
+import csv
 
 from main import CONFIG_PATH
+
+def clean(value):
+        """Standardizes strings: 'None', empty, or whitespace become 'none'."""
+        string = str(value).strip() if value else ""
+        return string if string and string.lower() != "none" else "none"
+
+def create_config_from_sheet():
+    """Shortened and refactored creator for datasets_config.json."""
+    map_path = r"../data/raw/Tree-datasets(Column_mapping).csv"
+    data_path = r"../data/raw/Tree-datasets(Datasets).csv"
+
+    # 1. Load Metadata from Datasets CSV
+    metadata = {}
+    with open(data_path, 'r', encoding='latin-1') as f:
+        for r in csv.DictReader(f, delimiter=';'):
+            if r.get('Name') and r.get('File_type') != 'ERROR':
+                metadata[r['Name'].strip()] = r
+
+    # 2. Process Mappings CSV
+    config = []
+    with open(map_path, 'r', encoding='latin-1') as f:
+        reader = csv.reader(f, delimiter=';')
+        next(reader)  # Skip the header row
+        
+        for row in reader:
+            # Process only mapping rows (where the first column/City name is not empty)
+            name = row[0].strip() if row and row[0] else None
+            if name not in metadata:
+                continue
+
+            info = metadata[name]
+            entry = {
+                "name": name.replace(" ", "_"),
+                "file_type": info['File_type'].upper(),
+                "metadata": {
+                    "data_owner": info['Data_owner'],
+                    "email_address": clean(info['Email_adress']),
+                    "language": info['Language'],
+                    "primary_source": info['Primary_source'],
+                    "download_link": info['Download_link']
+                },
+                "column_mapping": {
+                    "Latin_name": clean(row[3]),
+                    "Height": clean(row[13]),
+                    "Year_of_planting": clean(row[4]),
+                    "Trunk_diameter": clean(row[5])
+                }
+            }
+
+            if entry["file_type"] == "CSV":
+                continue
+                #TODO: implement lat/lon/geometry column handling
+
+            config.append(entry)
+
+    # 3. Save resulting configuration
+    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+    with open(CONFIG_PATH, "w", encoding='utf-8') as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+
+    print(f"Successfully created {CONFIG_PATH} with {len(config)} datasets.")
 
 
 def create_example_config():
@@ -537,6 +599,9 @@ if __name__ == "__main__":
     # Create example command
     example_parser = subparsers.add_parser('create-example', help='Create example config file')
 
+    # Read sheet command
+    sheet_parser = subparsers.add_parser('read-sheet', help='Create config from CSV sheets')
+
     args = parser.parse_args()
 
     if args.command == 'add':
@@ -554,6 +619,9 @@ if __name__ == "__main__":
     elif args.command == 'remove':
         success = remove_dataset(args.name, args.config)
         sys.exit(0 if success else 1)
+
+    elif args.command == 'read-sheet':
+        create_config_from_sheet()
 
     elif args.command == 'create-example':
         create_example_config()
