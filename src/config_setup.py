@@ -500,29 +500,32 @@ def add_datasets_from_json(
     # return added_count
 
 
-def list_datasets(config_path: str = "datasets_config.json"):
-    print("todo")
-    # Todo: fix all of this with the new config format
-    # """List all datasets in the config file."""
-    # try:
-    #     with open(config_path, 'r', encoding='utf-8') as f:
-    #         config = json.load(f)
-    #
-    #     if not config:
-    #         print("No datasets in config file.")
-    #         return
-    #
-    #     print(f"\n=== Datasets in {config_path} ===\n")
-    #     for i, dataset in enumerate(config, 1):
-    #         print(f"{i}. {dataset.get('name', 'Unknown')}")
-    #         print(f"   Owner: {dataset.get('data_owner', 'N/A')}")
-    #         print(f"   Type: {dataset.get('file_type', 'N/A')}")
-    #         print(f"   Update: {dataset.get('update_frequency', 'N/A')}")
-    #         print()
-    # except FileNotFoundError:
-    #     print(f"Config file not found: {config_path}")
-    # except json.JSONDecodeError:
-    #     print(f"Invalid JSON in config file: {config_path}")
+def list_datasets(config_path):
+    """List all datasets in the config file."""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    
+        if not config:
+            print("No datasets in config file.")
+            return
+    
+        print(f"\n=== Datasets in {config_path} ===\n")
+        for i, dataset in enumerate(config, 1):
+            print(f"{i}. {dataset.get('name', 'Unknown')}")
+            print(f"   Type: {dataset.get('file_type', 'N/A')}")
+            print(f"   Owner: {dataset.get('metadata', {}).get('data_owner', 'N/A')}")
+            print(f"   Email: {dataset.get('metadata', {}).get('email_address', 'N/A')}")
+            print(f"   Language: {dataset.get('metadata', {}).get('language', 'N/A')}")
+            print(f"   Primary Source: {dataset.get('metadata', {}).get('primary_source', 'N/A')}")
+            print(f"   Download Link: {dataset.get('metadata', {}).get('download_link', 'N/A')}")
+            print(f"   Column Mapping: {dataset.get('column_mapping', {})}")
+            print()
+            
+    except FileNotFoundError:
+        print(f"Config file not found: {config_path}")
+    except json.JSONDecodeError:
+        print(f"Invalid JSON in config file: {config_path}")
 
 
 def remove_dataset(name: str, config_path: str = "datasets_config.json") -> bool:
@@ -589,7 +592,7 @@ if __name__ == "__main__":
 
     # List command
     list_parser = subparsers.add_parser('list', help='List all datasets in config')
-    list_parser.add_argument('--config', default='datasets_config.json', help='Path to config file')
+    list_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
     # Remove command
     remove_parser = subparsers.add_parser('remove', help='Remove dataset from config')
