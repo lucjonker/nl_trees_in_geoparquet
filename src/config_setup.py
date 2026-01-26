@@ -26,17 +26,17 @@ def create_config_from_sheet(config_path):
 
     # 2. Process Mappings CSV
     config = []
-    with open(map_path, 'r', encoding='latin-1') as f:
-        reader = csv.reader(f, delimiter=';')
-        next(reader)  # Skip the header row
-        
-        for row in reader:
-            # Process only mapping rows (where the first column/City name is not empty)
-            name = row[0].strip() if row and row[0] else None
-            if name not in metadata:
-                continue
-
-            info = metadata[name]
+    for name, info in metadata.items():
+        # Search the Mapping CSV for a row that matches this dataset name
+        mapping_row = None
+        with open(map_path, 'r', encoding='latin-1') as f:
+            map_reader = csv.reader(f, delimiter=';')
+            next(map_reader)  # Skip header
+            for row in map_reader:
+                if row and row[0].strip() == name:
+                    mapping_row = row
+                    break
+    
             entry = {
                 "name": name.replace(" ", "_"),
                 "file_type": info['File_type'].upper(),
@@ -48,10 +48,10 @@ def create_config_from_sheet(config_path):
                     "download_link": info['Download_link']
                 },
                 "column_mapping": {
-                    "Latin_name": clean(row[3]),
-                    "Height": clean(row[13]),
-                    "Year_of_planting": clean(row[4]),
-                    "Trunk_diameter": clean(row[5])
+                    "Latin_name": clean(mapping_row[3]) if mapping_row else None,
+                    "Height": clean(mapping_row[13]) if mapping_row else None,
+                    "Year_of_planting": clean(mapping_row[4]) if mapping_row else None,
+                    "Trunk_diameter": clean(mapping_row[5]) if mapping_row else None
                 }
             }
 
