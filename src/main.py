@@ -173,7 +173,7 @@ def main():
         print("---- COMMENCING GEOPARQUET CONVERSION ----")
         for dataset in datasets:
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-            dataset_name = dataset.get('name', 'unknown')
+            dataset_name = str.capitalize(dataset.get('name', 'unknown'))
             logger.info(f"Processing dataset: {dataset_name}")
             try:
                 process_dataset(dataset, dataset_name, processor)
@@ -187,9 +187,10 @@ def main():
         local_path = args.local_path
         processor = DatasetDownloader(config_path, template_path, logger=logger)
         datasets = processor.config
-
-        print(f"---- COMMENCING GEOPARQUET CONVERSION FOR {args.name} ----")
         dataset_name = str.capitalize(args.name)
+
+        print(f"---- COMMENCING GEOPARQUET CONVERSION FOR {dataset_name} ----")
+
         for dataset in [d for d in datasets if str.capitalize(d.get('name')) == dataset_name]:
             logger.info(f"Processing dataset: {dataset_name}")
             try:
