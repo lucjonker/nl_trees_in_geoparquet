@@ -22,6 +22,7 @@ def create_example_config():
             },
             "column_mapping": {
                 "Latin_name": "SRT_WETENS",
+                "Trunk_diameter": "STAMDIAMET"
             }
         },
         {
@@ -37,7 +38,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "SOORTNAAM",
                 "Height": "BOOMHOOGTEKLASSEACTUEEL",
-                "Year_of_planting": "JAARVANAANLEG"
+                "Year_of_planting": "JAARVANAANLEG",
+                "Trunk_diameter": "STAMDIAMETERKLASSE"
             }
         },
         {
@@ -52,7 +54,7 @@ def create_example_config():
             },
             "column_mapping": {
                 "Latin_name": "Wetenschappelijke_naam",
-                "Year_of_planting": "Plantjaar"
+                "Year_of_planting": "Plantjaar",
             }
         },
         {
@@ -68,7 +70,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "BOOMSORTIMENT",
                 "Height": "HOOGTE",
-                "Year_of_planting": "AANLEGJAAR"
+                "Year_of_planting": "AANLEGJAAR",
+                "Trunk_diameter": "DIAMETER"
             }
         },
         {
@@ -84,7 +87,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "soortnaam",
                 "Height": "boomhoogteklasseActueel",
-                "Year_of_planting": "jaarVanAanleg"
+                "Year_of_planting": "jaarVanAanleg",
+                "Trunk_diameter": "none"
             }
         },
         {
@@ -100,7 +104,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "LATIJNSE_NAAM",
                 "Height": "BOOMHOOGTE",
-                "Year_of_planting": "KIEMJAAR"
+                "Year_of_planting": "KIEMJAAR",
+                "Trunk_diameter": "none"
             }
         },
         {
@@ -119,7 +124,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "latijnse_naam",
                 "Height": "hoogte",
-                "Year_of_planting": "plantjaar"
+                "Year_of_planting": "plantjaar",
+                "Trunk_diameter": "none"
             }
         },
         {
@@ -135,7 +141,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "boomsoort",
                 "Height": "hoogte",
-                "Year_of_planting": "plantjaar"
+                "Year_of_planting": "plantjaar",
+                "Trunk_diameter": "none"
             }
         },
         {
@@ -153,7 +160,8 @@ def create_example_config():
             "column_mapping": {
                 "Latin_name": "BOOMSOORT",
                 "Height": "HOOGTE_EXACT",
-                "Year_of_planting": "PLANTJAAR"
+                "Year_of_planting": "PLANTJAAR",
+                "Trunk_diameter": "STAMDIAMETER"
             }
         }
     ]
@@ -179,6 +187,7 @@ def add_dataset_programmatically(
         latin_name_column: str,
         height_column: str,
         year_of_planting_column: str,
+        Trunk_diameter_column: str,
         email_address: str = "",
         language: str = "Dutch",
         primary_source: str = "",
@@ -200,6 +209,7 @@ def add_dataset_programmatically(
         latin_name_column: The name of the column containing the Latin name,
         height_column: The name of the column containing the height,
         year_of_planting_column: The name of the column containing the year of planting,
+        Trunk_diameter_column: The name of the column containing the trunk diameter,
         email_address: Contact email
         language: Language of dataset
         primary_source: Primary source URL
@@ -220,7 +230,8 @@ def add_dataset_programmatically(
         "column_mapping": {
             "Latin_name": latin_name_column,
             "Height": height_column,
-            "Year_of_planting": year_of_planting_column
+            "Year_of_planting": year_of_planting_column,
+            "Trunk_diameter": Trunk_diameter_column
         }
     }
 
@@ -284,11 +295,10 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
             "download_link": input("Download link (API URL): ").strip(),
         },
         "column_mapping": {
-            "Latin_name": input(
-                "The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
+            "Latin_name": input("The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
             "Height": input("The name of the column containing the height (e.g., 'Hoogte', 'Boomhoogte'): ").strip(),
-            "Year_of_planting": input(
-                "The name of the column containing the year of planting (e.g., 'Kiemjaar','Plantjaar'): ").strip()
+            "Year_of_planting": input("The name of the column containing the year of planting (e.g., 'Kiemjaar','Plantjaar'): ").strip(),
+            "Trunk_diameter": input("The name of the column containing the trunk diameter (e.g., 'Stamdiameter', 'Diameter'): ").strip(),
         }
     }
 
