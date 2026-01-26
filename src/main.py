@@ -10,7 +10,6 @@ import warnings
 import geoparquet_io as gpio
 from geoparquet_io.core.validate import validate_geoparquet
 from geoparquet_io.core.stac import generate_stac_item, generate_stac_collection
-from geoparquet_io.core.upload import upload, upload_directory_async
 
 from retrieve_data import DatasetDownloader
 
@@ -270,9 +269,22 @@ def main():
                 continue
         sys.exit(0)
     elif args.command == 'upload-one':
-        raise NotImplementedError("Need to get a source.coop account first.")
-        print(f"---- COMMENCING UPLOAD TO {args.bucket} ----")
-        upload_to_source_coop(CONVERTED_DIRECTORY, args.bucket)
+        name = str.capitalize(args.name)
+        print(f"---- COMMENCING UPLOAD TO {args.bucket} for {name} ----")
+
+        config_path = args.config
+        datasets = None
+        with open(config_path, 'r') as f:
+            datasets = json.load(f)
+
+        for dataset in [d for d in datasets if str.capitalize(d.get('name')) == name]:
+            dataset_name = dataset.get('name', 'unknown')
+            try:
+                dataset_path = f"{CONVERTED_DIRECTORY}{dataset_name}/{dataset_name}.parquet"
+                upload_to_s3(dataset_path, dataset_name, args.bucket)
+            except Exception as e:
+                logger.error(f"Failed to upload {dataset_name}: {e}")
+                continue
         sys.exit(0)
     elif args.command == 'stac':
         print("---- COMMENCING STAC METADATA GENERATION ----")
