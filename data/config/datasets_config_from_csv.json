@@ -1,0 +1,274 @@
+[
+  {
+    "name": "Den_Haag",
+    "file_type": "SHP",
+    "metadata": {
+      "data_owner": "The_Hague (Gemeente)",
+      "email_address": "support@civity.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/313fa20b-7608-447d-8882-3ae2b989bc5d",
+      "download_link": "https://ckan.dataplatform.nl/dataset/2487aed5-961b-4add-ab88-2400fa6901f6/resource/038fc5b4-c086-4de1-99a1-9284685e0e6d/download/bomen-shape.zip"
+    },
+    "column_mapping": {
+      "Latin_name": "SRT_WETENS",
+      "Height": "none",
+      "Year_of_planting": "LEEFTIJD",
+      "Trunk_diameter": "STAMDIAMET"
+    }
+  },
+  {
+    "name": "Hilversum",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Hilversum (Gemeente)",
+      "email_address": "none",
+      "language": "Dutch",
+      "primary_source": "https://open-hilversum.hub.arcgis.com/datasets/Hilversum::bomen/about",
+      "download_link": "https://services-eu1.arcgis.com/YcscSJ1XstO6iVhP/arcgis/rest/services/Bomen_8b628/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson"
+    },
+    "column_mapping": {
+      "Latin_name": "SOORTNAAM",
+      "Height": "BOOMHOOGTEKLASSEACTUEEL",
+      "Year_of_planting": "JAARVANAANLEG",
+      "Trunk_diameter": "STAMDIAMETERKLASSE"
+    }
+  },
+  {
+    "name": "Utrecht",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Utrecht (Gemeente)",
+      "email_address": "data@utrecht.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/utrecht-bomenkaart-update-2024#panel-resources",
+      "download_link": "https://arcgis.com/sharing/rest/content/items/7e2404cf7fba4bb087935f9cdb51f053/data"
+    },
+    "column_mapping": {
+      "Latin_name": "Wetenschappelijke_naam",
+      "Height": "none",
+      "Year_of_planting": "Plantjaar",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Delft",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Delft (Gemeente)",
+      "email_address": "none",
+      "language": "Dutch",
+      "primary_source": "https://data.delft.nl/datasets/bomen-in-beheer-door-gemeente-delft-1/about",
+      "download_link": "https://hub.arcgis.com/api/v3/datasets/d83a50486b384bfe8038c2d762f5e628_0/downloads/data?format=geojson&spatialRefId=4326&where=1=1"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSORTIMENT",
+      "Height": "HOOGTE",
+      "Year_of_planting": "AANLEGJAAR",
+      "Trunk_diameter": "DIAMETER"
+    }
+  },
+  {
+    "name": "Amsterdam",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Amsterdam (Gemeente)",
+      "email_address": "data-helpdesk@amsterdam.nl",
+      "language": "Dutch",
+      "primary_source": "https://api.data.amsterdam.nl/v1/bomen/v1/stamgegevens",
+      "download_link": "https://api.data.amsterdam.nl/v1/bomen/v1/stamgegevens?_format=geojson"
+    },
+    "column_mapping": {
+      "Latin_name": "soortnaam",
+      "Height": "boomhoogteklasseActueel",
+      "Year_of_planting": "jaarVanAanleg",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Groningen",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Groningen (Gemeente)",
+      "email_address": "opendata@groningen.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.groningen.nl/dataset/bomen-gemeente-groningen",
+      "download_link": "https://maps.groningen.nl/geoserver/geo-data/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geo-data:Bomen%20gemeente%20Groningen&maxFeatures=1000000&outputFormat=application/json&srsName=EPSG:4326&format_options=id_policy:reference_no=false"
+    },
+    "column_mapping": {
+      "Latin_name": "LATIJNSE_NAAM",
+      "Height": "BOOMHOOGTE",
+      "Year_of_planting": "KIEMJAAR",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Eindhoven",
+    "file_type": "PARQUET",
+    "metadata": {
+      "data_owner": "Eindhoven (Gemeente)",
+      "email_address": "data@eindhoven.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.eindhoven.nl/explore/dataset/bomen/information/?disjunctive.beheerder&disjunctive.boomsoort&disjunctive.hoogte&disjunctive.eigenaar&disjunctive.eindbeeld&disjunctive.boomsoort_nederlands&disjunctive.status_ter_indicatie",
+      "download_link": "https://data.eindhoven.nl/api/explore/v2.1//catalog/datasets/bomen/exports/parquet"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSOORT",
+      "Height": "HOOGTE",
+      "Year_of_planting": "PLANTJAAR",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Velsen",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Velsen (Gemeente)",
+      "email_address": "informatiestatistiek@velsen.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/bomen-gemeente-velsen#panel-description",
+      "download_link": "https://github.com/IenS-Velsen/Bomen/blob/main/Bomen.geojson"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOM_NAAM",
+      "Height": "BOOM_HOOGTE",
+      "Year_of_planting": "none",
+      "Trunk_diameter": "BOOM_STAMDIAMETER"
+    }
+  },
+  {
+    "name": "Haarlem",
+    "file_type": "GPKG",
+    "metadata": {
+      "data_owner": "Haarlem (Gemeente)",
+      "email_address": "opendata@haarlem.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/bomenkaart-haarlem#panel-description",
+      "download_link": "HELP: https://kaart.haarlem.nl/app/map/38"
+    },
+    "column_mapping": {
+      "Latin_name": "naam_lt",
+      "Height": "none",
+      "Year_of_planting": "leeftijd",
+      "Trunk_diameter": "diameter"
+    }
+  },
+  {
+    "name": "Oss",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Oss (Gemeente)",
+      "email_address": "bomen@oss.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/oss-bomenkaart#panel-description",
+      "download_link": "HELP: https://geoportaaloss.oss.nl/portal/apps/experiencebuilder/experience/?id=b006792777034cfeabb1d0dfc8c7062c"
+    },
+    "column_mapping": {
+      "Latin_name": "WETENSCHAPPELIJKE_NAAM",
+      "Height": "none",
+      "Year_of_planting": "AANLEGJAAR",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Breda",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Breda (Gemeente)",
+      "email_address": "opendata@breda.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/bomen-breda#panel-description",
+      "download_link": "HELP: https://data.breda.nl/datasets/bomen/explore"
+    },
+    "column_mapping": {
+      "Latin_name": "HB_SRT_soortwet",
+      "Height": "none",
+      "Year_of_planting": "none",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Sliedrecht",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Sliedrecht (Gemeente)",
+      "email_address": "none",
+      "language": "Dutch",
+      "primary_source": "https://ckan.dataplatform.nl/dataset/bomen-sliedrecht/resource/b2e92a02-cb00-40ba-82c7-92a6a0a78b7b",
+      "download_link": "https://ckan.dataplatform.nl/dataset/2b585014-2f2a-4ff8-89ab-c1513168702c/resource/b2e92a02-cb00-40ba-82c7-92a6a0a78b7b/download/sliedrechtbomen20170412.json"
+    },
+    "column_mapping": {
+      "Latin_name": "boomsoort",
+      "Height": "none",
+      "Year_of_planting": "aanlegjaar",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Tilburg",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Tilburg (Gemeente)",
+      "email_address": "opendata@tilburg.nl",
+      "language": "Dutch",
+      "primary_source": "https://acc-ckan.dataplatform.nl/dataset/bomen-tilburg/resource/7da8e62c-78c5-40db-84c9-ea2926b4b925",
+      "download_link": "https://acc-ckan.dataplatform.nl/dataset/51a11053-61ab-4e40-95ad-89e38f22b11e/resource/7da8e62c-78c5-40db-84c9-ea2926b4b925/download/bomen.json"
+    },
+    "column_mapping": {
+      "Latin_name": "latijnse_boomnaam",
+      "Height": "boomhoogte",
+      "Year_of_planting": "plantjaar",
+      "Trunk_diameter": "diameter_in_cm"
+    }
+  },
+  {
+    "name": "Wageningen",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Wageningen (Gemeente)",
+      "email_address": "none",
+      "language": "Dutch",
+      "primary_source": "https://www.wageningen.nl/direct-regelen/bouwen-wonen-groen/groen/onderhoud-van-gemeentebomen/",
+      "download_link": "HELP: https://experience.arcgis.com/experience/690666dd110c446fab723b78759d6cbb"
+    },
+    "column_mapping": {
+      "Latin_name": "SOORT_WET",
+      "Height": "BOOMHOOGTE",
+      "Year_of_planting": "Jaar",
+      "Trunk_diameter": "stamdiameter"
+    }
+  },
+  {
+    "name": "Leeuwarden",
+    "file_type": "SHP",
+    "metadata": {
+      "data_owner": "Leeuwarden (Gemeente)",
+      "email_address": "none",
+      "language": "Dutch",
+      "primary_source": "https://github.com/jdhoek/bomen-leeuwarden-osm/tree/master/source-data",
+      "download_link": "HELP: https://viewer.bomenwacht.nl/?code=X8LkjfRUFqAmbYHXMJmC"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSOORT",
+      "Height": "none",
+      "Year_of_planting": "PLANTJAAR",
+      "Trunk_diameter": "none"
+    }
+  },
+  {
+    "name": "Zwolle",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Zwolle (Gemeente)",
+      "email_address": "none",
+      "language": "Dutch",
+      "primary_source": "https://smart-zwolle.opendata.arcgis.com/datasets/zwolle::bomen/explore",
+      "download_link": "HELP: https://smart-zwolle.opendata.arcgis.com/datasets/zwolle::bomen/explore"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSORTIMENT",
+      "Height": "HOOGTE",
+      "Year_of_planting": "AANLEGJAAR",
+      "Trunk_diameter": "DIAMETER"
+    }
+  }
+]
