@@ -150,14 +150,13 @@
   },
   {
     "name": "Haarlem",
-    "file_type": "GPKG",
-    "local_path": "../data/local/Haarlem.gpkg",
+    "file_type": "JSON",
     "metadata": {
       "data_owner": "Haarlem (Gemeente)",
       "email_address": "opendata@haarlem.nl",
       "language": "Dutch",
       "primary_source": "https://data.overheid.nl/dataset/bomenkaart-haarlem#panel-description",
-      "download_link": "N/A"
+      "download_link": "https://data.haarlem.nl/geoserver/wfs?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=gemeentehaarlem%3Abor_bomen&SRSNAME=EPSG%3A28992&OUTPUTFORMAT=application%2Fjson"
     },
     "column_mapping": {
       "Latin_name": "naam_lt",
