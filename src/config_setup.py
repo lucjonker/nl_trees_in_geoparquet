@@ -126,6 +126,7 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
         "lat_column": input(
             "The name of the column containing the Latitude value, needed if you don't have a geometry column (e.g., 'LAT, X_coordinate') (In the case of a CSV): ").strip(),
         "crs": input("CRS (e.g., 'EPSG:4326') (In the case of a CSV): ").strip(),
+        "local_path": input("Local path to the file, if not available through an API").strip(),
         "metadata": {
             "data_owner": input("Data owner (e.g., 'Amsterdam (Gemeente)'): ").strip(),
             "email_address": input("Email address: ").strip(),
@@ -144,45 +145,43 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
         }
     }
 
-    # Todo: fix all of this with the new config format
+    # Validate required fields
+    if not all([dataset["name"], dataset["file_type"], dataset["column_mapping"], dataset["metadata"]]):
+        print("Name, file_type, column_mapping, and metadata are required!")
+        return False
+    # Validate CSV specific fields
+    elif dataset.get('file_type') == "CSV" and not (
+            all([dataset['lat_column'], dataset['lon_column'], dataset['CRS']]) or all(
+        [dataset['geometry_column'], dataset['CRS']])):
+        print("csv files require a defined CRS, and either a geometry column or lat_column + lon_column")
+        return False
 
-    # # Validate required fields
-    # if not all([dataset["name"], dataset["download_link"], dataset["file_type"]]):
-    #     print("Name, download_link, and file_type are required fields!")
-    #     return False
-    #
-    # elif not all([dataset["column_mapping"]["Municipality"], dataset["column_mapping"]["Lon"],
-    #               dataset["column_mapping"]["Lat"], dataset["column_mapping"]["Latin_name"],
-    #               dataset["column_mapping"]["Height"], dataset["column_mapping"]["Year_of_planting"]]):
-    #     print("All the different columns need to be mapped properly")
-    #     return False
-    #
-    # # Load existing config or create new one
-    # try:
-    #     with open(config_path, 'r', encoding='utf-8') as f:
-    #         config = json.load(f)
-    # except FileNotFoundError:
-    #     config = []
-    #     print(f"Config file not found. Creating new one at {config_path}")
-    #
-    # # Check for duplicate names
-    # if any(d.get('name') == dataset['name'] for d in config):
-    #     overwrite = input(f"\nDataset '{dataset['name']}' already exists. Overwrite? (yes/no): ").lower()
-    #     if overwrite == 'yes':
-    #         config = [d for d in config if d.get('name') != dataset['name']]
-    #     else:
-    #         print("Dataset not added.")
-    #         return False
-    #
-    # # Add new dataset
-    # config.append(dataset)
-    #
-    # # Save updated config
-    # with open(config_path, 'w', encoding='utf-8') as f:
-    #     json.dump(config, f, indent=2, ensure_ascii=False)
-    #
-    # print(f"Successfully added dataset '{dataset['name']}' to {config_path}")
-    # return True
+    # Load existing config or create new one
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        config = []
+        print(f"Config file not found. Creating new one at {config_path}")
+
+    # Check for duplicate names
+    if any(d.get('name') == dataset['name'] for d in config):
+        overwrite = input(f"\nDataset '{dataset['name']}' already exists. Overwrite? (yes/no): ").lower()
+        if overwrite == 'yes':
+            config = [d for d in config if d.get('name') != dataset['name']]
+        else:
+            print("Dataset not added.")
+            return False
+
+    # Add new dataset
+    config.append(dataset)
+
+    # Save updated config
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+
+    print(f"Successfully added dataset '{dataset['name']}' to {config_path}")
+    return True
 
 
 def add_datasets_from_json(
