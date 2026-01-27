@@ -1,5 +1,33 @@
 [
   {
+    "name": "Alkmaar",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Alkmaar (Gemeente)",
+      "email_address": "mailto:Oweijer@alkmaar.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/bomen-alkmaar#panel-description",
+      "download_link": "http://datalab.alkmaar.nl/geoserver/Alkmaar/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Alkmaar%3ACkan_Bomen&maxFeatures=500000&outputFormat=application%2Fjson"
+    },
+    "column_mapping": {
+      "Latin_name": "latijnse_naam",
+      "Year_of_planting": "plantjaar"
+    }
+  },
+  {
+    "name": "Lelystad",
+    "file_type": "JSON",
+    "metadata": {
+      "data_owner": "Lelystad (Gemeente)",
+      "email_address": "support@civity.nl",
+      "language": "Dutch",
+      "primary_source": "https://ckan.dataplatform.nl/dataset/lelystad-bgt-vegetatieobject",
+      "download_link": "https://ckan.dataplatform.nl/dataset/73fe6ccc-d3f4-48a5-8602-8a0329a5a177/resource/e71c890b-7973-4c2e-9e04-828dde8da3b3/download/lelystad-bgt-vegetatieobject.geojson"
+    },
+    "column_mapping": {
+    }
+  },
+  {
     "name": "Den_Haag",
     "file_type": "SHP",
     "metadata": {
@@ -190,8 +218,8 @@
       "download_link": "https://ckan.dataplatform.nl/dataset/2b585014-2f2a-4ff8-89ab-c1513168702c/resource/b2e92a02-cb00-40ba-82c7-92a6a0a78b7b/download/sliedrechtbomen20170412.json"
     },
     "column_mapping": {
-      "Latin_name": "boomsoort",
-      "Year_of_planting": "aanlegjaar"
+      "Latin_name": "Boomsoort",
+      "Year_of_planting": "Aanlegjaar"
     }
   },
   {

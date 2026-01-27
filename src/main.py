@@ -37,7 +37,6 @@ def convert_file(processor, dataset, dataset_name):
     gdf = None
 
     local_path = dataset.get('local_path')
-    file_path = local_path
     temp_file = None
 
     if local_path:
@@ -113,6 +112,7 @@ def combine_multiple_layers(file_path, layers):
 
     return gdf
 
+
 def add_space_filling_curve(dataset_path: str):
     logger.info("Adding bbox and performing hilbert sorting")
     table = gpio.read(dataset_path)
@@ -128,7 +128,7 @@ def validate(dataset_path: str):
                 f"| Num failed tests: {validation_result.failed_count} | Num warnings: {validation_result.warning_count}")
 
 
-def generate_all_stac(base_directory: str, bucket: str, up: bool):
+def generate_all_stac(base_directory: str, bucket: str, single_dataset: str, up: bool):
     """
     Scans the data directory, generates an Item for each city subfolder,
     and then generates a root Collection.
@@ -140,6 +140,9 @@ def generate_all_stac(base_directory: str, bucket: str, up: bool):
                if os.path.isdir(os.path.join(base_directory, d))]
 
     for city in subdirs:
+        if single_dataset and single_dataset != str.capitalize(city):
+            continue
+
         city_path = os.path.join(base_directory, city)
         parquet_file = os.path.join(city_path, f"{city}.parquet")
 
@@ -169,7 +172,7 @@ def generate_all_stac(base_directory: str, bucket: str, up: bool):
         bucket_prefix=bucket
     )[0]
 
-    # Hack for partitioned files
+    # Hack for partitioned files since it doesn't add the correct links
     for item in collection['links']:
         if item['rel'] == 'item':
             item_href = item['href']
@@ -229,7 +232,9 @@ def main():
     # Generate STAC command
     stac_parser = subparsers.add_parser('stac', help='Generate STAC Items and Collection for existing parquet files')
     stac_parser.add_argument('--bucket', default=DEFAULT_BUCKET, help='Target S3 URI (e.g., s3://bucket-name/path/)')
-    stac_parser.add_argument('--upload', action=argparse.BooleanOptionalAction, help='Whether to upload parquet files to provided S3 or not')
+    stac_parser.add_argument('--single_dataset', help='Name of the one dataset to convert')
+    stac_parser.add_argument('--upload', action=argparse.BooleanOptionalAction,
+                             help='Whether to upload parquet files to provided S3 or not')
 
     args = parser.parse_args()
 
@@ -289,9 +294,14 @@ def main():
         sys.exit(0)
     elif args.command == 'stac':
         print("---- COMMENCING STAC METADATA GENERATION ----")
+        name = args.single_dataset
+        single_dataset = None
+
+        if name:
+            single_dataset = str.capitalize(args.single_dataset)
         bucket = args.bucket
         upload = args.upload
-        generate_all_stac(CONVERTED_DIRECTORY, bucket, upload)
+        generate_all_stac(CONVERTED_DIRECTORY, bucket, single_dataset, upload)
         sys.exit(0)
     else:
         parser.print_help()

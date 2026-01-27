@@ -106,8 +106,7 @@ class DatasetDownloader:
         # Get column mappings
         dataset_column_mapping = dataset_info.get('column_mapping', {})
         if not dataset_column_mapping:
-            self.logger.error(f"No column mapping found for dataset {dataset_info}")
-            return gdf
+            self.logger.warning(f"No column mapping found for dataset {dataset_info}")
         # Get template column mapping
         template_column_mapping = self.template.get('column_mapping', {})
         if not template_column_mapping:
