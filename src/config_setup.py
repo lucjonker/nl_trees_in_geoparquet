@@ -7,233 +7,11 @@ import csv
 
 from main import CONFIG_PATH
 
+
 def clean(value):
-        """Standardizes strings: 'None', empty, or whitespace become 'none'."""
-        string = str(value).strip() if value else ""
-        return string if string and string.lower() != "none" else "none"
-
-def create_config_from_sheet(config_path):
-    """Shortened and refactored creator for datasets_config.json."""
-    map_path = r"../data/config/Tree-datasets(Column_mapping).csv"
-    data_path = r"../data/config/Tree-datasets(Datasets).csv"
-
-    # 1. Load Metadata from Datasets CSV
-    metadata = {}
-    with open(data_path, 'r', encoding='latin-1') as f:
-        for r in csv.DictReader(f, delimiter=';'):
-            if r.get('Name') and r.get('File_type') != 'ERROR' and r.get('File_type'):
-                metadata[r['Name'].strip()] = r
-
-    # 2. Process Mappings CSV
-    config = []
-    for name, info in metadata.items():
-        # Search the Mapping CSV for a row that matches this dataset name
-        mapping_row = None
-        with open(map_path, 'r', encoding='latin-1') as f:
-            map_reader = csv.reader(f, delimiter=';')
-            next(map_reader)  # Skip header
-            for row in map_reader:
-                if row and row[0].strip() == name:
-                    mapping_row = row
-                    break
-    
-            entry = {
-                "name": name.replace(" ", "_"),
-                "file_type": info['File_type'].upper(),
-                "metadata": {
-                    "data_owner": info['Data_owner'],
-                    "email_address": clean(info['Email_adress']),
-                    "language": info['Language'],
-                    "primary_source": info['Primary_source'],
-                    "download_link": info['Download_link']
-                },
-                "column_mapping": {
-                    "Latin_name": clean(mapping_row[3]) if mapping_row else None,
-                    "Height": clean(mapping_row[13]) if mapping_row else None,
-                    "Year_of_planting": clean(mapping_row[4]) if mapping_row else None,
-                    "Trunk_diameter": clean(mapping_row[5]) if mapping_row else None
-                }
-            }
-
-            if entry["file_type"] == "CSV":
-                continue
-                #TODO: implement lat/lon/geometry column handling
-
-            config.append(entry)
-
-    # 3. Save resulting configuration
-    os.makedirs(os.path.dirname(config_path), exist_ok=True)
-    with open(config_path, "w", encoding='utf-8') as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-
-    print(f"Successfully created {config_path} with {len(config)} datasets.")
-
-def create_example_config():
-    """Create an example configuration file."""
-    config = [
-        {
-            "name": "Den_Haag",
-            "file_type": "SHP",
-            "metadata": {
-                "data_owner": "Gemeente 's-Gravenhage (Gemeente)",
-                "email_address": "none",
-                "language": "Dutch",
-                "primary_source": "https://data.overheid.nl/dataset/313fa20b-7608-447d-8882-3ae2b989bc5d",
-                "download_link": "https://ckan.dataplatform.nl/dataset/2487aed5-961b-4add-ab88-2400fa6901f6/resource/038fc5b4-c086-4de1-99a1-9284685e0e6d/download/bomen-shape.zip",
-            },
-            "column_mapping": {
-                "Latin_name": "SRT_WETENS",
-                "Trunk_diameter": "STAMDIAMET"
-            }
-        },
-        {
-            "name": "Hilversum",
-            "file_type": "JSON",
-            "metadata": {
-                "data_owner": "Hilversum (Gemeente)",
-                "email_address": "none",
-                "language": "Dutch",
-                "primary_source": "https://open-hilversum.hub.arcgis.com/datasets/Hilversum::bomen/about",
-                "download_link": "https://services-eu1.arcgis.com/YcscSJ1XstO6iVhP/arcgis/rest/services/Bomen_8b628/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson"
-            },
-            "column_mapping": {
-                "Latin_name": "SOORTNAAM",
-                "Height": "BOOMHOOGTEKLASSEACTUEEL",
-                "Year_of_planting": "JAARVANAANLEG",
-                "Trunk_diameter": "STAMDIAMETERKLASSE"
-            }
-        },
-        {
-            "name": "Utrecht",
-            "file_type": "JSON",
-            "metadata": {
-                "data_owner": "Utrecht (Gemeente)",
-                "email_address": "none",
-                "language": "Dutch",
-                "primary_source": "https://data.overheid.nl/dataset/utrecht-bomenkaart-update-2024#panel-resources",
-                "download_link": "https://arcgis.com/sharing/rest/content/items/7e2404cf7fba4bb087935f9cdb51f053/data",
-            },
-            "column_mapping": {
-                "Latin_name": "Wetenschappelijke_naam",
-                "Year_of_planting": "Plantjaar",
-            }
-        },
-        {
-            "name": "Delft",
-            "file_type": "JSON",
-            "metadata": {
-                "data_owner": "Delft (Gemeente)",
-                "email_address": "none",
-                "language": "Dutch",
-                "primary_source": "https://data.delft.nl/datasets/bomen-in-beheer-door-gemeente-delft-1/about",
-                "download_link": "https://hub.arcgis.com/api/v3/datasets/d83a50486b384bfe8038c2d762f5e628_0/downloads/data?format=geojson&spatialRefId=4326&where=1=1",
-            },
-            "column_mapping": {
-                "Latin_name": "BOOMSORTIMENT",
-                "Height": "HOOGTE",
-                "Year_of_planting": "AANLEGJAAR",
-                "Trunk_diameter": "DIAMETER"
-            }
-        },
-        {
-            "name": "Amsterdam",
-            "file_type": "JSON",
-            "metadata": {
-                "data_owner": "Amsterdam (Gemeente)",
-                "email_address": "data-helpdesk@amsterdam.nl",
-                "language": "Dutch",
-                "primary_source": "https://api.data.amsterdam.nl/v1/bomen/v1/stamgegevens",
-                "download_link": "https://api.data.amsterdam.nl/v1/bomen/v1/stamgegevens?_format=geojson",
-            },
-            "column_mapping": {
-                "Latin_name": "soortnaam",
-                "Height": "boomhoogteklasseActueel",
-                "Year_of_planting": "jaarVanAanleg",
-                "Trunk_diameter": "none"
-            }
-        },
-        {
-            "name": "Groningen",
-            "file_type": "JSON",
-            "metadata": {
-                "data_owner": "Groningen (Gemeente)",
-                "email_address": "opendata@groningen.nl",
-                "language": "Dutch",
-                "primary_source": "https://data.groningen.nl/dataset/bomen-gemeente-groningen",
-                "download_link": "https://maps.groningen.nl/geoserver/geo-data/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geo-data:Bomen%20gemeente%20Groningen&maxFeatures=1000000&outputFormat=application/json&srsName=EPSG:4326&format_options=id_policy:reference_no=false"
-            },
-            "column_mapping": {
-                "Latin_name": "LATIJNSE_NAAM",
-                "Height": "BOOMHOOGTE",
-                "Year_of_planting": "KIEMJAAR",
-                "Trunk_diameter": "none"
-            }
-        },
-        {
-            "name": "Dronten",
-            "file_type": "CSV",
-            "lat_column": "LAT",
-            "lon_column": "LON",
-            "CRS": "ESPG:4326",
-            "metadata": {
-                "data_owner": "Dronten (Gemeente)",
-                "email_address": "data@dronten.nl",
-                "language": "Dutch",
-                "primary_source": "http://data.overheid.nl/dataset/bomenkaart-dronten",
-                "download_link": "https://nedgeoservices.nedgraphicscs.nl/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=topp:O10002_Bomenkaart_OD&outputFormat=csv"
-            },
-            "column_mapping": {
-                "Latin_name": "latijnse_naam",
-                "Height": "hoogte",
-                "Year_of_planting": "plantjaar",
-                "Trunk_diameter": "none"
-            }
-        },
-        {
-            "name": "Eindhoven",
-            "file_type": "PARQUET",
-            "metadata": {
-                "data_owner": "Eindhoven (Gemeente)",
-                "email_address": "data@eindhoven.nl",
-                "language": "Dutch",
-                "primary_source": "https://data.eindhoven.nl/explore/dataset/bomen/information/?disjunctive.beheerder&disjunctive.boomsoort&disjunctive.hoogte&disjunctive.eigenaar&disjunctive.eindbeeld&disjunctive.boomsoort_nederlands&disjunctive.status_ter_indicatie",
-                "download_link": "https://data.eindhoven.nl/api/explore/v2.1//catalog/datasets/bomen/exports/parquet"
-            },
-            "column_mapping": {
-                "Latin_name": "boomsoort",
-                "Height": "hoogte",
-                "Year_of_planting": "plantjaar",
-                "Trunk_diameter": "none"
-            }
-        },
-        {
-            "name": "Nijmegen",
-            "file_type": "CSV",
-            "geometry_column": "GEOMETRIE",
-            "crs": "EPSG:28992",
-            "metadata": {
-                "data_owner": "Eindhoven (Gemeente)",
-                "email_address": "opendata@nijmegen.nl",
-                "language": "Dutch",
-                "primary_source": "https://opendata.nijmegen.nl/dataset/bomen",
-                "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv"
-            },
-            "column_mapping": {
-                "Latin_name": "BOOMSOORT",
-                "Height": "HOOGTE_EXACT",
-                "Year_of_planting": "PLANTJAAR",
-                "Trunk_diameter": "STAMDIAMETER"
-            }
-        }
-    ]
-
-    #make sure CONFIG_PATH exists
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-
-    with open(CONFIG_PATH, "w", encoding='utf-8') as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-
-    print("Created example config file: datasets_config.json")
+    """Standardizes strings: 'None', empty, or whitespace become 'none'."""
+    string = str(value).strip() if value else ""
+    return string if string and string.lower() != "none" else "none"
 
 
 def add_dataset_programmatically(
@@ -356,14 +134,17 @@ def add_dataset_to_config(config_path: str = CONFIG_PATH):
             "download_link": input("Download link (API URL): ").strip(),
         },
         "column_mapping": {
-            "Latin_name": input("The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
+            "Latin_name": input(
+                "The name of the column containing the Latin name (e.g., 'Latijnse_naam', 'boomsoort'): ").strip(),
             "Height": input("The name of the column containing the height (e.g., 'Hoogte', 'Boomhoogte'): ").strip(),
-            "Year_of_planting": input("The name of the column containing the year of planting (e.g., 'Kiemjaar','Plantjaar'): ").strip(),
-            "Trunk_diameter": input("The name of the column containing the trunk diameter (e.g., 'Stamdiameter', 'Diameter'): ").strip(),
+            "Year_of_planting": input(
+                "The name of the column containing the year of planting (e.g., 'Kiemjaar','Plantjaar'): ").strip(),
+            "Trunk_diameter": input(
+                "The name of the column containing the trunk diameter (e.g., 'Stamdiameter', 'Diameter'): ").strip(),
         }
     }
 
-    #Todo: fix all of this with the new config format
+    # Todo: fix all of this with the new config format
 
     # # Validate required fields
     # if not all([dataset["name"], dataset["download_link"], dataset["file_type"]]):
@@ -440,24 +221,24 @@ def add_datasets_from_json(
 
     # Validate each dataset
     valid_datasets = []
-    
+
     for i, dataset in enumerate(new_datasets):
         if not isinstance(dataset, dict):
             print(f"Skipping item {i}: not a dictionary")
             continue
-    
+
         if not (dataset.get("name") and dataset.get("file_type") and dataset.get("metadata", {}).get("download_link")):
             print(f"Skipping dataset {dataset.get('name', 'unknown')}: missing fields")
             continue
-    
+
         # Ensure file_type is uppercase
         dataset['file_type'] = dataset['file_type'].upper()
         valid_datasets.append(dataset)
-    
+
     if not valid_datasets:
         print("No valid datasets found in input file")
         return 0
-    
+
     # Load existing config or create new one
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -465,14 +246,14 @@ def add_datasets_from_json(
     except FileNotFoundError:
         config = []
         print(f"Config file not found. Creating new one at {config_path}")
-    
+
     # Process each valid dataset
     added_count = 0
     existing_names = {d.get('name') for d in config}
-    
+
     for dataset in valid_datasets:
         name = dataset['name']
-    
+
         if name in existing_names:
             if overwrite_duplicates:
                 config = [d for d in config if d.get('name') != name]
@@ -485,13 +266,13 @@ def add_datasets_from_json(
             config.append(dataset)
             print(f"Added new dataset: {name}")
             added_count += 1
-    
+
     # Save updated config
     if added_count > 0:
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
         print(f"Successfully added {added_count} dataset(s) to {config_path}")
-    
+
     return added_count
 
 
@@ -500,11 +281,11 @@ def list_datasets(config_path):
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
-    
+
         if not config:
             print("No datasets in config file.")
             return
-    
+
         print(f"\n=== Datasets in {config_path} ===\n")
         for i, dataset in enumerate(config, 1):
             print(f"{i}. {dataset.get('name', 'Unknown')}")
@@ -516,7 +297,7 @@ def list_datasets(config_path):
             print(f"   Download Link: {dataset.get('metadata', {}).get('download_link', 'N/A')}")
             print(f"   Column Mapping: {dataset.get('column_mapping', {})}")
             print()
-            
+
     except FileNotFoundError:
         print(f"Config file not found: {config_path}")
     except json.JSONDecodeError:
@@ -531,17 +312,17 @@ def remove_dataset(name: str, config_path) -> bool:
     except FileNotFoundError:
         print(f"Config file not found: {config_path}")
         return False
-    
+
     original_length = len(config)
     config = [d for d in config if d.get('name') != name]
-    
+
     if len(config) == original_length:
         print(f"Dataset '{name}' not found in config")
         return False
-    
+
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
-    
+
     print(f"Removed dataset '{name}' from {config_path}")
     return True
 
@@ -593,13 +374,6 @@ if __name__ == "__main__":
     remove_parser.add_argument('--name', help='Name of dataset to remove')
     remove_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
 
-    # Create example command
-    example_parser = subparsers.add_parser('create-example', help='Create example config file')
-
-    # Read sheet command
-    sheet_parser = subparsers.add_parser('read-sheet', help='Create config from CSV sheets')
-    sheet_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
-
     args = parser.parse_args()
 
     if args.command == 'add':
@@ -618,10 +392,5 @@ if __name__ == "__main__":
         success = remove_dataset(args.name, args.config)
         sys.exit(0 if success else 1)
 
-    elif args.command == 'read-sheet':
-        create_config_from_sheet(args.config)
-
-    elif args.command == 'create-example':
-        create_example_config()
     else:
         parser.print_help()

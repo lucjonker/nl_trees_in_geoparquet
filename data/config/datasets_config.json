@@ -11,7 +11,6 @@
     },
     "column_mapping": {
       "Latin_name": "SRT_WETENS",
-      "Height": "none",
       "Year_of_planting": "LEEFTIJD",
       "Trunk_diameter": "STAMDIAMET"
     }
@@ -45,9 +44,7 @@
     },
     "column_mapping": {
       "Latin_name": "Wetenschappelijke_naam",
-      "Height": "none",
-      "Year_of_planting": "Plantjaar",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "Plantjaar"
     }
   },
   {
@@ -80,8 +77,7 @@
     "column_mapping": {
       "Latin_name": "soortnaam",
       "Height": "boomhoogteklasseActueel",
-      "Year_of_planting": "jaarVanAanleg",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "jaarVanAanleg"
     }
   },
   {
@@ -97,8 +93,7 @@
     "column_mapping": {
       "Latin_name": "LATIJNSE_NAAM",
       "Height": "BOOMHOOGTE",
-      "Year_of_planting": "KIEMJAAR",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "KIEMJAAR"
     }
   },
   {
@@ -114,13 +109,13 @@
     "column_mapping": {
       "Latin_name": "BOOMSOORT",
       "Height": "HOOGTE",
-      "Year_of_planting": "PLANTJAAR",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "PLANTJAAR"
     }
   },
   {
     "name": "Velsen",
     "file_type": "JSON",
+    "local_path": "../data/local/Velsen.geojson",
     "metadata": {
       "data_owner": "Velsen (Gemeente)",
       "email_address": "informatiestatistiek@velsen.nl",
@@ -131,13 +126,13 @@
     "column_mapping": {
       "Latin_name": "BOOM_NAAM",
       "Height": "BOOM_HOOGTE",
-      "Year_of_planting": "none",
       "Trunk_diameter": "BOOM_STAMDIAMETER"
     }
   },
   {
     "name": "Haarlem",
     "file_type": "GPKG",
+    "local_path": "../data/local/Haarlem.gpkg",
     "metadata": {
       "data_owner": "Haarlem (Gemeente)",
       "email_address": "opendata@haarlem.nl",
@@ -147,7 +142,6 @@
     },
     "column_mapping": {
       "Latin_name": "naam_lt",
-      "Height": "none",
       "Year_of_planting": "leeftijd",
       "Trunk_diameter": "diameter"
     }
@@ -155,6 +149,7 @@
   {
     "name": "Oss",
     "file_type": "JSON",
+    "local_path": "../data/local/Oss.geojson",
     "metadata": {
       "data_owner": "Oss (Gemeente)",
       "email_address": "bomen@oss.nl",
@@ -164,14 +159,13 @@
     },
     "column_mapping": {
       "Latin_name": "WETENSCHAPPELIJKE_NAAM",
-      "Height": "none",
-      "Year_of_planting": "AANLEGJAAR",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "AANLEGJAAR"
     }
   },
   {
     "name": "Breda",
-    "file_type": "JSON",
+    "file_type": "GPKG",
+    "local_path": "../data/local/Breda.gpkg",
     "metadata": {
       "data_owner": "Breda (Gemeente)",
       "email_address": "opendata@breda.nl",
@@ -180,10 +174,7 @@
       "download_link": "HELP: https://data.breda.nl/datasets/bomen/explore"
     },
     "column_mapping": {
-      "Latin_name": "HB_SRT_soortwet",
-      "Height": "none",
-      "Year_of_planting": "none",
-      "Trunk_diameter": "none"
+      "Latin_name": "HB_SRT_soortwet"
     }
   },
   {
@@ -198,9 +189,7 @@
     },
     "column_mapping": {
       "Latin_name": "boomsoort",
-      "Height": "none",
-      "Year_of_planting": "aanlegjaar",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "aanlegjaar"
     }
   },
   {
@@ -223,6 +212,7 @@
   {
     "name": "Wageningen",
     "file_type": "JSON",
+    "local_path": "../data/local/Wageningen.geojson",
     "metadata": {
       "data_owner": "Wageningen (Gemeente)",
       "email_address": "none",
@@ -239,7 +229,8 @@
   },
   {
     "name": "Leeuwarden",
-    "file_type": "SHP",
+    "file_type": "JSON",
+    "local_path": "../data/local/Leeuwarden.geojson",
     "metadata": {
       "data_owner": "Leeuwarden (Gemeente)",
       "email_address": "none",
@@ -249,14 +240,13 @@
     },
     "column_mapping": {
       "Latin_name": "BOOMSOORT",
-      "Height": "none",
-      "Year_of_planting": "PLANTJAAR",
-      "Trunk_diameter": "none"
+      "Year_of_planting": "PLANTJAAR"
     }
   },
   {
     "name": "Zwolle",
     "file_type": "JSON",
+    "local_path": "../data/local/Zwolle.geojson",
     "metadata": {
       "data_owner": "Zwolle (Gemeente)",
       "email_address": "none",
