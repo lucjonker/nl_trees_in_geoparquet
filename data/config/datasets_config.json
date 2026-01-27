@@ -138,7 +138,7 @@
       "email_address": "opendata@haarlem.nl",
       "language": "Dutch",
       "primary_source": "https://data.overheid.nl/dataset/bomenkaart-haarlem#panel-description",
-      "download_link": "HELP: https://kaart.haarlem.nl/app/map/38"
+      "download_link": "N/A"
     },
     "column_mapping": {
       "Latin_name": "naam_lt",
@@ -155,7 +155,7 @@
       "email_address": "bomen@oss.nl",
       "language": "Dutch",
       "primary_source": "https://data.overheid.nl/dataset/oss-bomenkaart#panel-description",
-      "download_link": "HELP: https://geoportaaloss.oss.nl/portal/apps/experiencebuilder/experience/?id=b006792777034cfeabb1d0dfc8c7062c"
+      "download_link": "N/A"
     },
     "column_mapping": {
       "Latin_name": "WETENSCHAPPELIJKE_NAAM",
@@ -171,7 +171,7 @@
       "email_address": "opendata@breda.nl",
       "language": "Dutch",
       "primary_source": "https://data.overheid.nl/dataset/bomen-breda#panel-description",
-      "download_link": "HELP: https://data.breda.nl/datasets/bomen/explore"
+      "download_link": "N/A"
     },
     "column_mapping": {
       "Latin_name": "HB_SRT_soortwet"
@@ -218,7 +218,7 @@
       "email_address": "none",
       "language": "Dutch",
       "primary_source": "https://www.wageningen.nl/direct-regelen/bouwen-wonen-groen/groen/onderhoud-van-gemeentebomen/",
-      "download_link": "HELP: https://experience.arcgis.com/experience/690666dd110c446fab723b78759d6cbb"
+      "download_link": "N/A"
     },
     "column_mapping": {
       "Latin_name": "SOORT_WET",
@@ -236,7 +236,7 @@
       "email_address": "none",
       "language": "Dutch",
       "primary_source": "https://github.com/jdhoek/bomen-leeuwarden-osm/tree/master/source-data",
-      "download_link": "HELP: https://viewer.bomenwacht.nl/?code=X8LkjfRUFqAmbYHXMJmC"
+      "download_link": "N/A"
     },
     "column_mapping": {
       "Latin_name": "BOOMSOORT",
@@ -252,7 +252,7 @@
       "email_address": "none",
       "language": "Dutch",
       "primary_source": "https://smart-zwolle.opendata.arcgis.com/datasets/zwolle::bomen/explore",
-      "download_link": "HELP: https://smart-zwolle.opendata.arcgis.com/datasets/zwolle::bomen/explore"
+      "download_link": "N/A"
     },
     "column_mapping": {
       "Latin_name": "BOOMSORTIMENT",
