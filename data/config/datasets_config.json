@@ -113,6 +113,25 @@
     }
   },
   {
+    "name": "Nijmegen",
+    "file_type": "CSV",
+    "geometry_column": "GEOMETRIE",
+    "crs": "EPSG:28992",
+    "metadata": {
+      "data_owner": "Nijmegen (Gemeente)",
+      "email_address": "opendata@nijmegen.nl",
+      "language": "Dutch",
+      "primary_source": "https://opendata.nijmegen.nl/dataset/bomen",
+      "download_link": "https://services.nijmegen.nl/geoservices/extern_BOR_Groen/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=extern_BOR_Groen%3AGRN_BOMEN&outputFormat=csv"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSOORT",
+      "Height": "HOOGTE_EXACT",
+      "Year_of_planting": "PLANTJAAR",
+      "Trunk_diameter": "STAMDIAMETER"
+    }
+  },
+  {
     "name": "Velsen",
     "file_type": "JSON",
     "local_path": "../data/local/Velsen.geojson",
