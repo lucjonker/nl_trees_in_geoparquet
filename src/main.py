@@ -232,7 +232,6 @@ def main():
             dataset_name = str.capitalize(file_name.split('.')[0])
             local_path = os.path.join(local_dir, file_name)
 
-            # 2. Find matching dataset in config
             matching_datasets = [d for d in datasets if str.capitalize(d.get('name')) == dataset_name]
             
             if not matching_datasets:
