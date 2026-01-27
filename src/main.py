@@ -30,7 +30,7 @@ DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-tree
 
 LOCAL_DIR = "../data/local/"
 
-CRS = "EPSG:28992"
+CRS = 4326
 
 
 def convert_file(processor, dataset, dataset_name):
@@ -85,7 +85,7 @@ def convert_file(processor, dataset, dataset_name):
     gdf_standardized = processor.standardize_data(gdf, dataset)
 
     # Reproject
-    gdf_standardized = gdf_standardized.to_crs(28992)
+    gdf_standardized = gdf_standardized.to_crs(CRS)
     # Remove rows where geometry is None or Empty
     gdf_standardized = gdf_standardized[~(gdf_standardized.geometry.is_empty | gdf_standardized.geometry.isna())]
     # Write as geoparquet file
@@ -167,7 +167,17 @@ def generate_all_stac(base_directory: str, bucket: str, up: bool):
         partition_dir=base_directory,
         public_url="https://data.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees_2/",
         bucket_prefix=bucket
-    )
+    )[0]
+
+    # Hack for partitioned files
+    for item in collection['links']:
+        if item['rel'] == 'item':
+            item_href = item['href']
+            base, filename = item_href.rsplit('/', 1)
+            city = filename.removesuffix('.json')
+            item_href = f"{base}/{city}/{filename}"
+            item['href'] = item_href
+
     collection_path = os.path.join(base_directory, "collection.json")
     write_stac_json(collection, collection_path)
     if up:
