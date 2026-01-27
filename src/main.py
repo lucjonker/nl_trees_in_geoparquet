@@ -25,6 +25,8 @@ TEMPLATE_PATH = "../data/config/dataset_template.json"
 
 DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees"
 
+LOCAL_DIR = "../data/local/"
+
 CRS = "EPSG:28992"
 
 
@@ -189,6 +191,12 @@ def main():
     convert_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
     convert_parser.add_argument('--template', default=TEMPLATE_PATH, help='Path to template file')
 
+    # Convert local directory command
+    convert_parser = subparsers.add_parser('convert-local-dir', help='Convert all files in a local directory to parquet files')
+    convert_parser.add_argument('--local_dir', default=LOCAL_DIR, help='Path to local directory containing dataset files')
+    convert_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
+    convert_parser.add_argument('--template', default=TEMPLATE_PATH, help='Path to template file')
+
     # Convert one command
     convert_one_parser = subparsers.add_parser('convert-one',
                                                help='Converts one dataset described in the config file to parquet files')
@@ -214,6 +222,30 @@ def main():
     stac_parser.add_argument('--bucket', default=DEFAULT_BUCKET, help='Target S3 URI (e.g., s3://bucket-name/path/)')
 
     args = parser.parse_args()
+
+    if args.command == 'convert-local-dir':
+        local_dir = args.local_dir
+        processor = DatasetDownloader(args.config, args.template, logger=logger)
+        datasets = processor.config
+
+        for file_name in os.listdir(local_dir):
+            dataset_name = str.capitalize(file_name.split('.')[0])
+            local_path = os.path.join(local_dir, file_name)
+
+            # 2. Find matching dataset in config
+            matching_datasets = [d for d in datasets if str.capitalize(d.get('name')) == dataset_name]
+            
+            if not matching_datasets:
+                logger.warning(f"No config entry found for {dataset_name} (from {file_name}). Skipping.")
+                continue
+
+            for dataset in matching_datasets:
+                logger.info(f"Processing: {dataset_name} ({file_name})")
+                try:
+                    process_dataset(dataset, dataset_name, processor, local_path)
+                except Exception as e:
+                    logger.error(f"Failed to process {dataset_name}: {e}")
+        sys.exit(0)
 
     if args.command == 'convert':
         config_path = args.config
