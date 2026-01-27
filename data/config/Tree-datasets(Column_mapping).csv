@@ -1,0 +1,28 @@
+;geometry_column;Dutch_name;Latin_name;Year_of_planting;Trunk_diameter;Owner;Caretaker;Underground;Street;City_block;City_area;Neigbourhoord;Height;;;;;Tree_number;Growth_fase;ID
+Den Haag;;SOORT_NL;SRT_WETENS;LEEFTIJD;STAMDIAMET;EIGENAAR;BEHEERDER;GROEIPLATS;STRAATNAAM;STADSDEEL;WIJK;BUURT;None;WGS84LONG;WGS84LAT;X;Y;BOOMNUMMER;LFDTKLASSE;ID
+;;Boomhazelaar;Corylus columna;31;10-25cm;Gemeente Den Haag;DSB/DPZ;None;Dalveen;Escamp;Bouwlust;Venen, Oorden en Raden;;4,251;52,042;77048,08;450993,454;14;Volwassen;1294491
+Hilversum;;SOORTNAAM_NED;SOORTNAAM;JAARVANAANLEG;STAMDIAMETERKLASSE;EIGENAAR;None;None;OPENBARERUIMTE;None;WIJK;BUURT;BOOMHOOGTEKLASSEACTUEEL;x;y;None;None;BOOMNUMMER;GROEIFASE;OBJECTID
+Utrecht;;Nederlandse_naam;Wetenschappelijke_naam;Plantjaar;None;Eigenaar;None;None;None;None;Wijk;Buurt;None;None;None;;;Boomnummer;None;OBJECTID
+Delft;;None;BOOMSORTIMENT;AANLEGJAAR;DIAMETER;EIGENAAR;BEHEERDER;STANDPLAATS;None;None;WIJK;BUURT;HOOGTE;None;None;;;None;None;ID
+Amsterdam;;None;soortnaam;jaarVanAanleg;None;typeEigenaarPlus;typeBeheerderPlus;standplaats;None;None;None;None;boomhoogteklasseActueel;None;None;;;None;None;id
+Groningen;;BOOMSOORT;LATIJNSE_NAAM;KIEMJAAR;None;EIGENAAR;None;None;STRAAT;STADSDEEL;None;BUURT;BOOMHOOGTE;None;None;;;None;None;OBJECT
+Eindhoven;;BOOMSOORT_NEDERLANDS;BOOMSOORT;PLANTJAAR;None;EIGENAAR;BEHEERDER;None;None;None;None;None;HOOGTE;None;None;;;BOOMNUMMER;None;OBJECTID
+Nijmegen;GEOMETRIE;NAAM_NEDERLANDS;BOOMSOORT;PLANTJAAR;STAMDIAMETER;None;None;STANDPLAATS;STRAATNAAM;STADSDEELNAAM;WIJKNAAM;None;HOOGTE_EXACT;None;None;;;None;None;ID
+Velsen;;None;BOOM_NAAM;None;BOOM_STAMDIAMETER;None;None;BOOM_STANDPLAATS;BOOM_STRAAT;None;BOOM_WIJK;None;BOOM_HOOGTE;None;None;;;BOOM)NUMMER;BOOM_GROEIFASE;ID
+Haarlem;;None;naam_lt;leeftijd;diameter;None;beheerder;None;None;None;None;None;None;None;None;;;boomnummer;None;id
+Oss;;NEDERLANDSE_NAAM;WETENSCHAPPELIJKE_NAAM;AANLEGJAAR;None;EIGENAAR;BEHEERDER;None;None;None;WIJK;BUURT;None;None;None;;;None;None;OBJECTID
+Arnhem;;None;BOOMSOORT;PLANTJAAR;None;EIGENAAR;None;None;None;None;WIJKNAAM;BUURTNAAM;BOOMHOOGTEKLASSE;LON;LAT;;;None;None;OBJECTID
+Breda;;HB_SRT_soortned;HB_SRT_soortwet;None;None;None;None;None;None;None;None;None;None;None;None;HB_ADM_rdx;HB_ADM_rdy;HD_ADM_boomnummer;None;None
+Alkmaar;;nednaam;latnaam;plantjaar;None;None;None;None;None;None;None;buurt;None;lng;lat;geometrie;;boomnr;None;None
+Assen;;None;Boomsoort;plantjaar;None;None;None;None;Straatnaam;None;None;None;HoogteBoom;None;None;;;Boomnummer;None;None
+Sliedrecht;;naam_nl;boomsoort;aanlegjaar;None;None;beheer;None;None;None;None;None;None;None;None;;;None;None;None
+Dordrecht;;boomsoort ned. naam;boomsoort wet. Naam;plantjaar;stamdiameter;eigendom;None;standplaats;None;None;None;None;None;None;None;x_coordinaat;y_coordinaat;None;None;None
+Alblasserdam;;boomsoort nederlands;boomsoort;None;None;None;None;None;None;None;None;None;None;None;None;x;y;None;None;id
+Amersfoort;;NEDERLANDSE_NAAM;BOOMSOORT;PLANTJAAR;STAMDIAMETER;None;None;STANDPLAATS;None;None;WIJKNAAM;BUURT;BOOMHOOGTE;None;None;;;None;None;ID
+Papendrecht;;Nederlandse naam;Boomsoort;Plantjaar;Stamdiameter borsthoogte (klasse);Eigendom;None;Standplaats;None;None;None;None;Boomhoogte;x;y;;;None;None;None
+Gouda;;soort;None;None;None;None;None;None;None;None;None;None;None;None;None;;;None;None;None
+Tilburg;;nederlandse_boomnaam;latijnse_boomnaam;plantjaar;diameter_in_cm;eigendom;None;standplaats;None;None;None;None;boomhoogte;latitude;longitude;;;None;None;None
+Wageningen;;SOORT_NED;SOORT_WET;Jaar;stamdiameter;BOOMEIGENA;None;Type_ondergrond;None;None;;;BOOMHOOGTE;None;None;;;None;None;OBJECTID
+Leeuwarden;;None;BOOMSOORT;PLANTJAAR;None;None;None;None;None;None;None;None;None;None;None;X;Y;None;None;None
+Zwolle;;NAAMNL;BOOMSORTIMENT;AANLEGJAAR;DIAMETER;EIGENAAR;BEHEERDER;STANDPLAATS;STRAATNAAM;None;WIJK;BUURT;HOOGTE;;;;;None;None;OBJECTID
+Dronten;;;latijnse_naam;plantjaar;;;;;;;;;hoogte;;;;;;;

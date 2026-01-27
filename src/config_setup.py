@@ -14,8 +14,8 @@ def clean(value):
 
 def create_config_from_sheet(config_path):
     """Shortened and refactored creator for datasets_config.json."""
-    map_path = r"../data/raw/Tree-datasets(Column_mapping).csv"
-    data_path = r"../data/raw/Tree-datasets(Datasets).csv"
+    map_path = r"../data/config/Tree-datasets(Column_mapping).csv"
+    data_path = r"../data/config/Tree-datasets(Datasets).csv"
 
     # 1. Load Metadata from Datasets CSV
     metadata = {}
