@@ -21,7 +21,7 @@ def create_config_from_sheet(config_path):
     metadata = {}
     with open(data_path, 'r', encoding='latin-1') as f:
         for r in csv.DictReader(f, delimiter=';'):
-            if r.get('Name') and r.get('File_type') != 'ERROR':
+            if r.get('Name') and r.get('File_type') != 'ERROR' and r.get('File_type'):
                 metadata[r['Name'].strip()] = r
 
     # 2. Process Mappings CSV
@@ -72,7 +72,7 @@ def create_example_config():
     """Create an example configuration file."""
     config = [
         {
-            "name": "The_Hague",
+            "name": "Den_Haag",
             "file_type": "SHP",
             "metadata": {
                 "data_owner": "Gemeente 's-Gravenhage (Gemeente)",
