@@ -165,22 +165,6 @@
     }
   },
   {
-    "name": "Oss",
-    "file_type": "JSON",
-    "local_path": "../data/local/Oss.geojson",
-    "metadata": {
-      "data_owner": "Oss (Gemeente)",
-      "email_address": "bomen@oss.nl",
-      "language": "Dutch",
-      "primary_source": "https://data.overheid.nl/dataset/oss-bomenkaart#panel-description",
-      "download_link": "N/A"
-    },
-    "column_mapping": {
-      "Latin_name": "WETENSCHAPPELIJKE_NAAM",
-      "Year_of_planting": "AANLEGJAAR"
-    }
-  },
-  {
     "name": "Breda",
     "file_type": "GPKG",
     "local_path": "../data/local/Breda.gpkg",
@@ -208,23 +192,6 @@
     "column_mapping": {
       "Latin_name": "boomsoort",
       "Year_of_planting": "aanlegjaar"
-    }
-  },
-  {
-    "name": "Tilburg",
-    "file_type": "JSON",
-    "metadata": {
-      "data_owner": "Tilburg (Gemeente)",
-      "email_address": "opendata@tilburg.nl",
-      "language": "Dutch",
-      "primary_source": "https://acc-ckan.dataplatform.nl/dataset/bomen-tilburg/resource/7da8e62c-78c5-40db-84c9-ea2926b4b925",
-      "download_link": "https://acc-ckan.dataplatform.nl/dataset/51a11053-61ab-4e40-95ad-89e38f22b11e/resource/7da8e62c-78c5-40db-84c9-ea2926b4b925/download/bomen.json"
-    },
-    "column_mapping": {
-      "Latin_name": "latijnse_boomnaam",
-      "Height": "boomhoogte",
-      "Year_of_planting": "plantjaar",
-      "Trunk_diameter": "diameter_in_cm"
     }
   },
   {
