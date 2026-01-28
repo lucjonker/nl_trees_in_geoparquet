@@ -2,6 +2,21 @@ import os
 import zipfile
 import boto3
 
+def calculate_file_size(file_path):
+    """Returns file size in Mb."""
+    try:
+        size_bytes = os.path.getsize(file_path)
+        return round(size_bytes / (1024 * 1024), 2)
+    except Exception:
+        return 0
+
+def compare_file_size(logger,dataset_name: str, raw_size_mb: float, dataset_path: str):
+    final_size_mb = calculate_file_size(dataset_path)
+    logger.info(f"Raw Size: {raw_size_mb} MB | Final Size: {final_size_mb} MB")
+
+    with open("conversion_stats.csv", "a") as f:
+        f.write(f"{dataset_name},{raw_size_mb},{final_size_mb}\n")
+
 def unzip_dir(directory_path):
     for filename in os.listdir(directory_path):
         if filename.endswith(".zip"):

@@ -15,6 +15,7 @@ from geoparquet_io.core.upload import upload
 from geoparquet_io.core.stac import generate_stac_item, generate_stac_collection, write_stac_json
 
 from retrieve_data import DatasetDownloader
+from utils import calculate_file_size, compare_file_size
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -31,7 +32,6 @@ DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-tree
 LOCAL_DIR = "../data/local/"
 
 CRS = 4326
-
 
 def convert_file(processor, dataset, dataset_name):
     gdf = None
@@ -51,6 +51,8 @@ def convert_file(processor, dataset, dataset_name):
         temp_file.close()
         file_path = temp_file.name
 
+    raw_size_mb = calculate_file_size(file_path)
+
     # Try to check for multiple layers
     try:
         # Supress warnings of wrong file suffix (.tmp works)
@@ -65,7 +67,7 @@ def convert_file(processor, dataset, dataset_name):
         else:
             gdf = gpd.read_file(file_path)
 
-    except Exception as e:
+    except Exception:
         # Not a multi-layer format, read normally
         if local_path:
             gdf = gpd.read_file(local_path)
@@ -94,7 +96,7 @@ def convert_file(processor, dataset, dataset_name):
     os.makedirs(f'{CONVERTED_DIRECTORY}{dataset_name}/', exist_ok=True)
     gdf_standardized.to_parquet(dataset_path)
 
-    return dataset_path
+    return raw_size_mb, dataset_path
 
 
 def combine_multiple_layers(file_path, layers):
@@ -156,7 +158,7 @@ def generate_all_stac(base_directory: str, bucket: str, single_dataset: str, up:
             stac_path = os.path.join(city_path, f"{city}.json")
             write_stac_json(item, stac_path)
 
-            logger.info(f"Uploading STAC file to S3")
+            logger.info("Uploading STAC file to S3")
             if up:
                 upload(Path(stac_path), bucket + f"/{city}/{city}.json")
         else:
@@ -222,6 +224,7 @@ def main():
     convert_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
     convert_parser.add_argument('--template', default=TEMPLATE_PATH, help='Path to template file')
     convert_parser.add_argument('--single_dataset', help='Name of the one dataset to convert')
+    convert_parser.add_argument('--record_size', help='Whether to record file sizes to CSV (y/n)', default='n')
 
     # Push parquet files to remote
     upload_parser = subparsers.add_parser('upload', help='Push parquet files to remote S3/Source.Coop')
@@ -243,6 +246,7 @@ def main():
         template_path = args.template
         processor = DatasetDownloader(config_path, template_path, logger=logger)
         datasets = processor.config
+        record_size = args.record_size.lower() == 'y'
 
         name = args.single_dataset
         single_dataset = None
@@ -260,7 +264,7 @@ def main():
             dataset_name = str.capitalize(dataset.get('name', 'unknown'))
             logger.info(f"Processing dataset: {dataset_name}")
             try:
-                process_dataset(dataset, dataset_name, processor)
+                process_dataset(dataset, dataset_name, processor, record_size)
             except Exception as e:
                 logger.error(f"Failed to process {dataset_name}: {e}")
                 continue
@@ -307,11 +311,13 @@ def main():
         parser.print_help()
 
 
-def process_dataset(dataset, dataset_name, processor: DatasetDownloader):
-    dataset_path = convert_file(processor, dataset, dataset_name)
+def process_dataset(dataset, dataset_name, processor: DatasetDownloader, record_size: bool = False ):
+    raw_size_mb, dataset_path = convert_file(processor, dataset, dataset_name)
     add_space_filling_curve(dataset_path)
     validate(dataset_path)
 
+    if record_size:
+        compare_file_size(logger,dataset_name, raw_size_mb, dataset_path)
 
 if __name__ == "__main__":
     main()
