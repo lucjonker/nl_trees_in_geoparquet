@@ -1,11 +1,13 @@
 import time
+import os
 
-from utils import *
+from utils import download_bbox_from_s3
 
 OUTPUT_DIRECTORY = "../data/download/"
 BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-trees-in-nl/"
 
 def main():
+    os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
     # nl_trees_2
     # nl_trees_no_hilbert
     # BBox next to border of delft and the hague, 3138pts:  bbox.xmin > 4.36314 AND bbox.xmax < 4.38221 AND bbox.ymin > 52.026 AND bbox.ymax < 52.03792
