@@ -1,6 +1,7 @@
 .idea
 .venv
 /data/raw
+/data/original_datasets
 
 .DS_Store
 /standardized_data

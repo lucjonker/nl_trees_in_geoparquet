@@ -10,12 +10,12 @@ def calculate_file_size(file_path):
     except Exception:
         return 0
 
-def compare_file_size(logger,dataset_name: str, raw_size_mb: float, dataset_path: str):
+def compare_file_size(logger, dataset_name: str, raw_size_mb_all_columns: float, standardized_size_mb: float, dataset_path: str):
     final_size_mb = calculate_file_size(dataset_path)
-    logger.info(f"Raw Size: {raw_size_mb} MB | Final Size: {final_size_mb} MB")
+    logger.info(f"Raw size with all columns {raw_size_mb_all_columns} MB | Raw Size: {standardized_size_mb} MB | Final Size: {final_size_mb} MB")
 
     with open("conversion_stats.csv", "a") as f:
-        f.write(f"{dataset_name},{raw_size_mb},{final_size_mb}\n")
+        f.write(f"{dataset_name},{raw_size_mb_all_columns},{standardized_size_mb},{final_size_mb}\n")
 
 def unzip_dir(directory_path):
     for filename in os.listdir(directory_path):

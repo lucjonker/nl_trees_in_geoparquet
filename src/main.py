@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 CONVERTED_DIRECTORY = "../data/nl_trees_2/"
 
+SIZE_DIRECTORY = "../data/original_datasets/"
+
 CONFIG_PATH = "../data/config/datasets_config.json"
 
 TEMPLATE_PATH = "../data/config/dataset_template.json"
@@ -33,8 +35,11 @@ LOCAL_DIR = "../data/local/"
 
 CRS = 4326
 
-def convert_file(processor, dataset, dataset_name):
+def convert_file(processor, dataset, dataset_name, record_size=False):
     gdf = None
+
+    raw_size_mb_all_columns = None
+    standardized_size_mb = None
 
     local_path = dataset.get('local_path')
     temp_file = None
@@ -50,8 +55,9 @@ def convert_file(processor, dataset, dataset_name):
         temp_file.write(response.content)
         temp_file.close()
         file_path = temp_file.name
-
-    raw_size_mb = calculate_file_size(file_path)
+    
+    if record_size:
+        raw_size_mb_all_columns = calculate_file_size(file_path)
 
     # Try to check for multiple layers
     try:
@@ -95,8 +101,26 @@ def convert_file(processor, dataset, dataset_name):
     # If all of this worked, can make a directory and save
     os.makedirs(f'{CONVERTED_DIRECTORY}{dataset_name}/', exist_ok=True)
     gdf_standardized.to_parquet(dataset_path)
+    
+    if record_size:
+        #also save to original file type for measuring size
+        driver_map = {"SHP": "ESRI Shapefile", "JSON": "GeoJSON", "GPKG": "GPKG", "PARQUET": "Parquet", "CSV": "CSV"}
+        driver = driver_map.get(dataset["file_type"].upper())
 
-    return raw_size_mb, dataset_path
+        if driver == "Parquet":
+            return 0,0, dataset_path
+
+        original_file_path = f'{SIZE_DIRECTORY}{dataset_name}/{dataset_name}_original.{dataset["file_type"].lower()}'
+        os.makedirs(f'{SIZE_DIRECTORY}{dataset_name}/', exist_ok=True)
+        gdf_standardized.to_file(original_file_path, driver=driver)
+
+        if driver == "ESRI Shapefile":
+            raw_size_mb_all_columns = 0
+            standardized_size_mb = 0
+        else:
+            standardized_size_mb = calculate_file_size(original_file_path)
+
+    return raw_size_mb_all_columns, standardized_size_mb, dataset_path
 
 
 def combine_multiple_layers(file_path, layers):
@@ -312,12 +336,12 @@ def main():
 
 
 def process_dataset(dataset, dataset_name, processor: DatasetDownloader, record_size: bool = False ):
-    raw_size_mb, dataset_path = convert_file(processor, dataset, dataset_name)
+    raw_size_mb_all_columns, standardized_size_mb, dataset_path = convert_file(processor, dataset, dataset_name, record_size)
     add_space_filling_curve(dataset_path)
     validate(dataset_path)
 
     if record_size:
-        compare_file_size(logger,dataset_name, raw_size_mb, dataset_path)
+        compare_file_size(logger,dataset_name, raw_size_mb_all_columns, standardized_size_mb, dataset_path)
 
 if __name__ == "__main__":
     main()
