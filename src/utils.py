@@ -40,11 +40,11 @@ def delete_s3_item(bucket_name, object_name):
 
 def download_bbox_from_s3(bucket_name, output_path, xmin, xmax, ymin, ymax):
     # Create a connection to db file
-    with duckdb.connect("buildings_database.db") as con:
+    with duckdb.connect() as con:
         # Initialize
         con.install_extension("spatial")
         con.load_extension("spatial")
-        con.execute("SET s3_region='us-west-2';")
+        # con.execute("SET s3_region='us-west-2';")
         # Download results from s3 and save to parquet file
         con.execute(f"""
             COPY (SELECT * FROM read_parquet('{bucket_name}/*/*.parquet', union_by_name=True) WHERE bbox.xmin > {xmin} AND bbox.xmax < {xmax} AND bbox.ymin > {ymin} AND bbox.ymax < {ymax}) 
