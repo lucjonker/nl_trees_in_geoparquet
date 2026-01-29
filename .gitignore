@@ -6,5 +6,6 @@
 .DS_Store
 /standardized_data
 data/nl_trees_2
+data/nl_trees_no_hilbert
 __pycache__
 conversion_stats.csv

@@ -15,6 +15,100 @@
     }
   },
   {
+    "name": "Assen",
+    "file_type": "CSV",
+    "lat_column": "Latitude",
+    "lon_column": "Longitude",
+    "CRS": 4326,
+    "metadata": {
+      "data_owner": "Assen (Gemeente)",
+      "email_address": "info@assen.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/dataset-bomen-assen#panel-description",
+      "download_link": "https://opendata.arcgis.com/datasets/4edbe00daef847aeb3116017e9a6db84_0.csv"
+    },
+    "column_mapping": {
+      "Latin_name": "Boomsoort",
+      "Year_of_planting": "Plantjaar",
+      "Height": "HoogteBoom"
+    }
+  },
+  {
+    "name": "Amersfoort",
+    "file_type": "CSV",
+    "lat_column": "LATITUDE",
+    "lon_column": "LONGITUDE",
+    "CRS": 4326,
+    "metadata": {
+      "data_owner": "Amersfoort (Gemeente)",
+      "email_address": "support@civity.nl",
+      "language": "Dutch",
+      "primary_source": "https://ckan.dataplatform.nl/dataset/amersfoort-gemeentelijke_bomen",
+      "download_link": "https://ckan.dataplatform.nl/dataset/7832e2c3-8365-4c03-820b-d0b0ec5c9718/resource/7794f7e2-8bb9-45ba-9a9f-df910b09c40f/download/amersfoort-gemeentelijke_bomen.csv"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSOORT",
+      "Year_of_planting": "PLANTJAAR",
+      "Height": "BOOMHOOGTE",
+      "Trunk_diameter": "STAMDIAMETER"
+    }
+  },
+  {
+    "name": "Arnhem",
+    "file_type": "CSV",
+    "lat_column": "LAT",
+    "lon_column": "LON",
+    "CRS": 4326,
+    "metadata": {
+      "data_owner": "Arnhem (Gemeente)",
+      "email_address": "opendata@arnhem.nl",
+      "language": "Dutch",
+      "primary_source": "https://data.overheid.nl/dataset/94da862c-6652-44e9-8e34-1f8f6d619754",
+      "download_link": "https://opendata.arcgis.com/datasets/4d988cd7848049d3a574fcbd477985be_0.csv"
+    },
+    "column_mapping": {
+      "Latin_name": "BOOMSOORT",
+      "Year_of_planting": "PLANTJAAR",
+      "Height": "BOOMHOOGTEKLASSE"
+    }
+  },
+  {
+    "name": "Gouda",
+    "file_type": "CSV",
+    "lat_column": "y",
+    "lon_column": "x",
+    "CRS": 4326,
+    "metadata": {
+      "data_owner": "Gouda (Gemeente)",
+      "email_address": "gemeente@gouda.nl",
+      "language": "Dutch",
+      "primary_source": "https://ckan.dataplatform.nl/dataset/datasets-slimmelden-gouda",
+      "download_link": "https://ckan.dataplatform.nl/dataset/5de35156-3c31-4b78-8653-3f6c3614c1f7/resource/7a5d7343-a327-4d50-8147-f811f3440b91/download/kcc_bomen_20250401.csv"
+    },
+    "column_mapping": {
+    }
+  },
+  {
+    "name": "Papendrecht",
+    "file_type": "CSV",
+    "lat_column": "latitude",
+    "lon_column": "longitude",
+    "CRS": 4326,
+    "metadata": {
+      "data_owner": "Papendrecht (Gemeente)",
+      "email_address": "griffie@papendrecht.nl",
+      "language": "Dutch",
+      "primary_source": "https://ckan.dataplatform.nl/dataset/groenekaart-papendrecht",
+      "download_link": "https://ckan.dataplatform.nl/dataset/69cc97fd-83c2-46c2-9888-6d25654cc351/resource/c394e815-3a64-45fe-9d58-c5e7e1334e2e/download/groene-kaart-papendrecht-2016-09-14.csv"
+    },
+    "column_mapping": {
+      "Latin_name": "Boomsoort",
+      "Year_of_planting": "Plantjaar",
+      "Height": "Boomhoogte",
+      "Trunk_diameter": "Stamdiameter borsthoogte (klasse)"
+    }
+  },
+  {
     "name": "Lelystad",
     "file_type": "JSON",
     "metadata": {
@@ -144,7 +238,7 @@
     "name": "Nijmegen",
     "file_type": "CSV",
     "geometry_column": "GEOMETRIE",
-    "crs": "EPSG:28992",
+    "CRS": 28992,
     "metadata": {
       "data_owner": "Nijmegen (Gemeente)",
       "email_address": "opendata@nijmegen.nl",

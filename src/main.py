@@ -285,7 +285,7 @@ def main():
                 continue
 
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-            dataset_name = str.capitalize(dataset.get('name', 'unknown'))
+            dataset_name = dataset.get('name', 'unknown')
             logger.info(f"Processing dataset: {dataset_name}")
             try:
                 process_dataset(dataset, dataset_name, processor, record_size)

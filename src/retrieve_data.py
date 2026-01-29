@@ -67,7 +67,7 @@ class DatasetDownloader:
             geometry_column = dataset_info.get('geometry_column', None)
             lat_column = dataset_info.get('lat_column', None)
             lon_column = dataset_info.get('lon_column', None)
-            crs = dataset_info.get('crs', None)
+            crs = dataset_info.get('CRS', None)
 
             if geometry_column:
                 df = pd.read_csv(content)
@@ -106,7 +106,7 @@ class DatasetDownloader:
         # Get column mappings
         dataset_column_mapping = dataset_info.get('column_mapping', {})
         if not dataset_column_mapping:
-            self.logger.warning(f"No column mapping found for dataset {dataset_info}")
+            self.logger.warning(f"No column mapping found for dataset! Double check that no columns from the original data can be mapped")
         # Get template column mapping
         template_column_mapping = self.template.get('column_mapping', {})
         if not template_column_mapping:
