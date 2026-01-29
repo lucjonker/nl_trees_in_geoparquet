@@ -30,6 +30,7 @@ CONFIG_PATH = "../data/config/datasets_config.json"
 TEMPLATE_PATH = "../data/config/dataset_template.json"
 
 DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees_2"
+DEFAULT_PUBLIC_URL = "https://data.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees_2"
 
 LOCAL_DIR = "../data/local/"
 
@@ -139,7 +140,7 @@ def combine_multiple_layers(file_path, layers):
     return gdf
 
 
-def add_space_filling_curve(dataset_path: str):
+def add_space_filling_curve_and_bbox(dataset_path: str):
     logger.info("Adding bbox and performing hilbert sorting")
     table = gpio.read(dataset_path)
     table = table.add_bbox().sort_hilbert()
@@ -174,10 +175,11 @@ def generate_all_stac(base_directory: str, bucket: str, single_dataset: str, up:
 
         if os.path.exists(parquet_file):
             logger.info(f"Generating STAC Item for: {city}")
+            # Todo: Public url is hardcoded at the moment, if another bucket is used it'd be nice to make this an argument
             item = generate_stac_item(
                 parquet_file,
                 bucket_prefix=bucket,
-                public_url=f"https://data.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees_2/{city}/",
+                public_url=f"{DEFAULT_PUBLIC_URL}/{city}/",
             )
             stac_path = os.path.join(city_path, f"{city}.json")
             write_stac_json(item, stac_path)
@@ -194,7 +196,7 @@ def generate_all_stac(base_directory: str, bucket: str, single_dataset: str, up:
     collection = generate_stac_collection(
         verbose=True,
         partition_dir=base_directory,
-        public_url="https://data.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees_2/",
+        public_url=DEFAULT_PUBLIC_URL,
         bucket_prefix=bucket
     )[0]
 
@@ -337,7 +339,7 @@ def main():
 
 def process_dataset(dataset, dataset_name, processor: DatasetDownloader, record_size: bool = False ):
     raw_size_mb_all_columns, standardized_size_mb, dataset_path = convert_file(processor, dataset, dataset_name, record_size)
-    add_space_filling_curve(dataset_path)
+    add_space_filling_curve_and_bbox(dataset_path)
     validate(dataset_path)
 
     if record_size:

@@ -1,6 +1,7 @@
 import os
 import zipfile
 import boto3
+import duckdb
 
 def calculate_file_size(file_path):
     """Returns file size in Mb."""
@@ -37,10 +38,15 @@ def delete_s3_item(bucket_name, object_name):
             response = s3.delete_object(Bucket=bucket_name, Key=object_name)
             print(response)
 
-
-def main():
-    # delete_s3_item("us-west-2.opendata.source.coop", "roorda-tudelft/public-trees-in-nl/geoparquet/")
-    print("Hello world")
-
-if __name__ == "__main__":
-    main()
+def download_bbox_from_s3(bucket_name, output_path, xmin, xmax, ymin, ymax):
+    # Create a connection to db file
+    with duckdb.connect("buildings_database.db") as con:
+        # Initialize
+        con.install_extension("spatial")
+        con.load_extension("spatial")
+        con.execute("SET s3_region='us-west-2';")
+        # Download results from s3 and save to parquet file
+        con.execute(f"""
+            COPY (SELECT * FROM read_parquet('{bucket_name}/*/*.parquet', union_by_name=True) WHERE bbox.xmin > {xmin} AND bbox.xmax < {xmax} AND bbox.ymin > {ymin} AND bbox.ymax < {ymax}) 
+            TO '{output_path}' (FORMAT parquet);
+        """)
