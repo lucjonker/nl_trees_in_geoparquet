@@ -107,12 +107,18 @@ def convert_file(processor, dataset, dataset_name, record_size=False):
         #also save to original file type for measuring size
         driver_map = {"SHP": "ESRI Shapefile", "JSON": "GeoJSON", "GPKG": "GPKG", "PARQUET": "Parquet", "CSV": "CSV"}
         driver = driver_map.get(dataset["file_type"].upper())
+        original_file_path = f'{SIZE_DIRECTORY}{dataset_name}/{dataset_name}_original.{dataset["file_type"].lower()}'
+        os.makedirs(f'{SIZE_DIRECTORY}{dataset_name}/', exist_ok=True)
+
 
         if driver == "Parquet":
             return 0,0, dataset_path
+        
+        elif driver == "CSV":
+            gdf_standardized.to_csv(original_file_path, index=False)
+            standardized_size_mb = calculate_file_size(original_file_path)
+            return raw_size_mb_all_columns, standardized_size_mb, dataset_path
 
-        original_file_path = f'{SIZE_DIRECTORY}{dataset_name}/{dataset_name}_original.{dataset["file_type"].lower()}'
-        os.makedirs(f'{SIZE_DIRECTORY}{dataset_name}/', exist_ok=True)
         gdf_standardized.to_file(original_file_path, driver=driver)
 
         if driver == "ESRI Shapefile":
