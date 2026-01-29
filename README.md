@@ -26,7 +26,7 @@ The main features of the repository are:
 │   ├── config/
 │   │   ├── datasets_config.json    # Dataset configuration file
 │   │   └── dataset_template.json   # Template for new datasets
-│   ├── nl_trees/                   # Output directory for converted files
+│   ├── nl_trees/                   # Output directory for converted files (not included in the repository)
 │   │   ├── amsterdam/
 │   │   │   ├── amsterdam.parquet
 │   │   │   └── amsterdam.json      # STAC Item
@@ -39,7 +39,7 @@ The main features of the repository are:
 When maintaining the dataset, two files are important:
 
 - **`main.py`** - Is the core pipeline for data conversion, validation, and publishing
-- **`config_setup.py`** - Is used for editing, adding and/or removing datasets
+- **`config_setup.py`** - Is used for editing, adding and/or removing datasets programatically if you don't want to interact with the JSON by hand
 
 ---
 
@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 When starting a new dataset or when updating the current dataset, the first step is to use the Dataset configuration methods found in `config_setup.py`. This file provides function that make it possible to add, remove or edit the datasets that are defined in the `datasets_config.json` file. The datasets in this file will be processed and added using the functions in `main.py`, explained later in this README file.
 
-The program requires certain information in order to function. These are: `name`, `file_type`, `download_link`, and `column_mapping`. The download link can also be a path to a local file. Other metadata is also requested to make the dataset more accessible and tracable for other users. The standard input JSON format is (see also`data\config\dataset_template.json`):
+The program requires certain information in order to function. These are: `name`, `file_type`, `download_link`, and `column_mapping`. In addition you can optionally have a `local_path` to override the download and use a file you've downloaded locally. Other metadata is also requested to make the dataset more accessible and tracable for other users. The standard input JSON format is (see also`data\config\dataset_template.json`):
 ```json
 {
   "name": "YourCity",
@@ -78,6 +78,7 @@ The program requires certain information in order to function. These are: `name`
   }
 }
 ```
+Note that for CSV files, extra data is required (`CRS`, `geometry_column` or `lat_column`, `lon_column`)
 
 The pipeline currently standardizes the following attributes:
 
@@ -88,7 +89,7 @@ The pipeline currently standardizes the following attributes:
 | `Year_of_planting` | Year planted | `plantjaar`, `plant_year`, `Kiemjaar` |
 | `Trunk_diameter` | Trunk diameter | `stamdiameter`, `diameter_cm`, `Diameter` |
 
-Set column to `"none"` if not available in source dataset. When desired, it is ofcourse possible to add extra attributes to the `column_mapping` list. It is required however to do this for all the datasets in the `datasets_config.json` file in order to function properly. It is therefore extra important to provide the relevant metadata in order to provide the possibility of other users to find and add new features.
+If the column is not available in source dataset, simply omit it from the column mappings section. When desired, it is of course possible to add extra attributes to the `column_mapping` list. It is required however to do this for all the datasets in the `datasets_config.json` (as well as the `datasets_template.json` ) file in order to function properly. It is therefore extra important to provide the relevant metadata in order to provide the possibility of other users to find and add new features.
 
 ---
 
@@ -169,7 +170,7 @@ python config_setup.py remove --name Amsterdam --config path/to/config.json
 ---
 
 ## Data Processing Pipeline - `main.py` 
-The main data processing pipeline uses the `datasets_config.json` file and either downloads the relevant data from configured URLs or reads local files. It checks if the file has multiple layers and combines them into one if so. The program then standardizes column names and geometry based on the mapping and reprojects the points to WGS84 (EPSG:4326). All invalid geometries are then removed, a spatial index is added (Hilbert Curve) and the file is transformed into a GeoParquet format and validated.
+The main data processing pipeline uses the `datasets_config.json` file and downloads the relevant data from configured URLs or reads local files. It checks if the file has multiple layers and combines them into one if so. The program then standardizes column names and geometry based on the mapping and reprojects the points to WGS84 (EPSG:4326). All invalid geometries are then removed, a spatial index is added (Hilbert Curve) and the file is transformed into a GeoParquet format and validated.
 
 
 ### Commands
@@ -191,7 +192,7 @@ python main.py convert --config path/to/config.json
 
 #### 2. Upload to Cloud Storage
 
-It is possible for the converted GeoParquet files to be uploaded to a S3-compatible storage. 
+It is possible for the converted GeoParquet files to be uploaded to a S3-compatible storage. (Note: it is required to export the bucket credentials in your terminal beforehand)
 
 **Prerequisites:**
 - AWS credentials exported in terminal
@@ -209,7 +210,7 @@ python main.py upload --single_dataset Amsterdam --bucket s3://bucket-name/path/
 
 #### 3. Generate STAC Metadata
 
-Creates STAC (SpatioTemporal Asset Catalog) metadata.
+Creates STAC (SpatioTemporal Asset Catalog) metadata. (Note: if uploading, it is required to export the bucket credentials in your terminal beforehand)
 
 ```bash
 # Generate STAC without uploading
@@ -347,7 +348,7 @@ Check logs for detailed error messages:
 - Requires internet connection for API downloads (unless using local files)
 - S3 upload requires appropriate credentials
 - Multi-layer files must have compatible schemas
-- CSV files need explicit CRS specification
+- CSV files need explicit CRS specification, and use standard delimiters and number formats (e.g. comma separated, doubles using periods)
 
 ---
 
