@@ -14,7 +14,7 @@ from geoparquet_io.core.validate import validate_geoparquet
 from geoparquet_io.core.upload import upload
 from geoparquet_io.core.stac import generate_stac_item, generate_stac_collection, write_stac_json
 
-from retrieve_data import DatasetDownloader
+from retrieve_data import DatasetDownloader, SCHEMA_PATH
 from utils import calculate_file_size, compare_file_size
 
 # Setup logging
@@ -254,7 +254,7 @@ def main():
     convert_parser = subparsers.add_parser('convert',
                                            help='Convert all datasets described in the config file to parquet files')
     convert_parser.add_argument('--config', default=CONFIG_PATH, help='Path to config file')
-    convert_parser.add_argument('--template', default=TEMPLATE_PATH, help='Path to template file')
+    convert_parser.add_argument('--template', default=SCHEMA_PATH, help='Path to template file')
     convert_parser.add_argument('--single_dataset', help='Name of the one dataset to convert')
     convert_parser.add_argument('--record_size', help='Whether to record file sizes to CSV (y/n)', default='n')
 
@@ -275,8 +275,7 @@ def main():
 
     if args.command == 'convert':
         config_path = args.config
-        template_path = args.template
-        processor = DatasetDownloader(config_path, template_path, logger=logger)
+        processor = DatasetDownloader(config_path, logger=logger)
         datasets = processor.config
         record_size = args.record_size.lower() == 'y'
 
@@ -353,4 +352,3 @@ def process_dataset(dataset, dataset_name, processor: DatasetDownloader, record_
 
 if __name__ == "__main__":
     main()
-    # TODO: should we add a small demo of querying the data for some arbitrary bbox?

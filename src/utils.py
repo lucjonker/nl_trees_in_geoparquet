@@ -2,6 +2,47 @@ import os
 import zipfile
 import boto3
 import duckdb
+import json
+import sys
+import jsonschema as js
+
+
+import jsonschema as js
+import json
+import sys
+
+def validate_config(config_path, schema_path, logger):
+    """Validates configuration file against JSON schema and logs specific city errors."""
+    with open(config_path, 'r') as f:
+        config_data = json.load(f)
+    with open(schema_path, 'r') as f:
+        schema = json.load(f)
+        
+    try:
+        js.validate(instance=config_data, schema=schema)
+        logger.info("Configuration validation passed.")
+    except js.exceptions.ValidationError as e:
+        # e.absolute_path is a deque. The first item is the index in the list.
+        # We can use this to find the specific city name in your config.
+        path = list(e.absolute_path)
+        
+        error_location = "Root"
+        city_info = "Unknown City"
+        
+        if path:
+            index = path[0]
+            # Try to get the name of the city that failed
+            city_name = config_data[index].get('name', f'Index {index}')
+            city_info = f"City: {city_name}"
+            # The rest of the path tells you the specific field (e.g., 'metadata', 'download_link')
+            error_location = " -> ".join(str(p) for p in path)
+
+        logger.error(f"--- Configuration Validation Failed ---")
+        logger.error(f"Location: {error_location}")
+        logger.error(f"Context: {city_info}")
+        logger.error(f"Error Message: {e.message}")
+        logger.error(f"---------------------------------------")
+        sys.exit(1)
 
 def calculate_file_size(file_path):
     """Returns file size in Mb."""

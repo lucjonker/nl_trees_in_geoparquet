@@ -24,9 +24,9 @@ The main features of the repository are:
 │   ├── utils.py                    # Functions used by other .py files                   
 ├── data/
 │   ├── config/
-│   │   ├── datasets_config.json    # Dataset configuration file
-│   │   └── dataset_template.json   # Template for new datasets
-│   ├── nl_trees/                   # Output directory for converted files (not included in the repository)
+│   │   ├── datasets_config.json          # Dataset configuration file
+│   │   └── dataset_config.schema.json    # Schema for config JSON
+│   ├── nl_trees/                         # Output directory for converted files (not included in the repository)
 │   │   ├── amsterdam/
 │   │   │   ├── amsterdam.parquet
 │   │   │   └── amsterdam.json      # STAC Item
@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 When starting a new dataset or when updating the current dataset, the first step is to use the Dataset configuration methods found in `config_setup.py`. This file provides function that make it possible to add, remove or edit the datasets that are defined in the `datasets_config.json` file. The datasets in this file will be processed and added using the functions in `main.py`, explained later in this README file.
 
-The program requires certain information in order to function. These are: `name`, `file_type`, `download_link`, and `column_mapping`. In addition you can optionally have a `local_path` to override the download and use a file you've downloaded locally. Other metadata is also requested to make the dataset more accessible and tracable for other users. The standard input JSON format is (see also`data\config\dataset_template.json`):
+The program requires certain information in order to function. These are: `name`, `file_type`, `download_link`, and `column_mapping`. In addition you can optionally have a `local_path` to override the download and use a file you've downloaded locally. Other metadata is also requested to make the dataset more accessible and tracable for other users. The standard input JSON format is (see also`data\config\dataset_config.schema.json`):
 ```json
 {
   "name": "YourCity",
@@ -78,6 +78,18 @@ The program requires certain information in order to function. These are: `name`
   }
 }
 ```
+Use your favorite IDE to check the config file against the provided schema while editing to limit mistakes. For VSCode you can do this by editing you settings like:
+```json
+"json.schemas": [
+        {
+            "fileMatch": [
+                "datasets_config.json"
+            ],
+            "url": "path_to/dataset_config.schema.json"
+        }
+    ]
+```
+
 Note that for CSV files, extra data is required (`CRS`, `geometry_column` or `lat_column`, `lon_column`)
 
 The pipeline currently standardizes the following attributes:
@@ -89,7 +101,7 @@ The pipeline currently standardizes the following attributes:
 | `Year_of_planting` | Year planted | `plantjaar`, `plant_year`, `Kiemjaar` |
 | `Trunk_diameter` | Trunk diameter | `stamdiameter`, `diameter_cm`, `Diameter` |
 
-If the column is not available in source dataset, simply omit it from the column mappings section. When desired, it is of course possible to add extra attributes to the `column_mapping` list. It is required however to do this for all the datasets in the `datasets_config.json` (as well as the `datasets_template.json` ) file in order to function properly. It is therefore extra important to provide the relevant metadata in order to provide the possibility of other users to find and add new features.
+If the column is not available in source dataset, simply omit it from the column mappings section. When desired, it is of course possible to add extra attributes to the `column_mapping` list. It is required however to do this for all the datasets in the `datasets_config.json` (as well as the schema ) file in order to function properly. It is therefore extra important to provide the relevant metadata in order to provide the possibility of other users to find and add new features.
 
 ---
 
@@ -234,7 +246,6 @@ Default paths in `main.py`:
 ```python
 CONVERTED_DIRECTORY = "../data/nl_trees_2/"
 CONFIG_PATH = "../data/config/datasets_config.json"
-TEMPLATE_PATH = "../data/config/dataset_template.json"
 DEFAULT_BUCKET = "s3://us-west-2.opendata.source.coop/roorda-tudelft/public-trees-in-nl/nl_trees_2"
 CRS = 4326  # WGS84
 ```

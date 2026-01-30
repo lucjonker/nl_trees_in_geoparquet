@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tree Dataset Configuration",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["name", "file_type", "metadata", "column_mapping"],
+    "properties": {
+      "name": { "type": "string", "description": "Data provider name" },
+      "file_type": { 
+        "enum": ["JSON", "CSV", "SHP", "GPKG", "PARQUET"],
+        "description": "Original data file format"
+      },
+      "local_path": { "type": "string" },
+      "lat_column": { "type": "string" },
+      "lon_column": { "type": "string" },
+      "geometry_column": { "type": "string" },
+      "CRS": { "type": "integer", "default": 4326 },
+      "metadata": {
+        "type": "object",
+        "required": ["data_owner", "download_link"],
+        "properties": {
+          "data_owner": { "type": "string" },
+          "email_address": { "type": "string" },
+          "language": { "type": "string", "default": "Dutch" },
+          "primary_source": { "type": "string", "format": "uri" },
+          "download_link": { "type": "string", "format": "uri" }
+        }
+      },
+      "column_mapping": {
+        "type": "object",
+        "additionalProperties": { "type": "string" },
+        "description": "Map standardized keys (Latin_name, etc.) to source columns",
+        "properties": {
+          "Latin_name": { "type": "string", "description": "Scientific name of the tree" },
+          "Height": { "type": "string", "description": "Height or height class" },
+          "Year_of_planting": { "type": "string", "description": "Year the tree was planted" },
+          "Trunk_diameter": { "type": "string", "description": "Diameter of the trunk" }
+        }
+      }
+    }
+  }
+}

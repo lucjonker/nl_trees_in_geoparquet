@@ -8,13 +8,15 @@ import logging
 from io import StringIO
 from typing import Dict, Any  # , List
 
-from pandas.io.sas.sas_constants import dataset_length, dataset_offset
 from shapely import wkt
+from utils import validate_config
+
+SCHEMA_PATH = '../data/config/dataset_config.schema.json'
 
 
 class DatasetDownloader:
     # Todo remove output path stuff
-    def __init__(self, config_path: str, template_path: str, logger: logging.Logger):
+    def __init__(self, config_path: str, logger: logging.Logger):
         """
         Initialize the dataset downloader.
 
@@ -22,8 +24,11 @@ class DatasetDownloader:
             config_path: Path to JSON config file with dataset information
         """
         self.config = self.load_json(config_path)
-        self.template = self.load_json(template_path)
+        self.schema = self.load_json(SCHEMA_PATH)
         self.logger = logger
+        self.schema_keys = self.schema["items"]["properties"]["column_mapping"].keys()
+
+        validate_config(config_path, SCHEMA_PATH, logger)
 
     def load_json(self, config_path):
         """Load dataset configuration from JSON file."""
@@ -79,7 +84,7 @@ class DatasetDownloader:
                 gdf = gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_xy(df[lon_column], df[lat_column]), crs=crs)
                 return gdf
             else:
-                self.logger.error(f"CSV file missing required metadata (lat/lon columns or geometrycolumn)")
+                self.logger.error("CSV file missing required metadata (lat/lon columns or geometrycolumn)")
                 return None
 
         elif file_type.upper() == "PARQUET":
@@ -106,11 +111,11 @@ class DatasetDownloader:
         # Get column mappings
         dataset_column_mapping = dataset_info.get('column_mapping', {})
         if not dataset_column_mapping:
-            self.logger.warning(f"No column mapping found for dataset! Double check that no columns from the original data can be mapped")
-        # Get template column mapping
-        template_column_mapping = self.template.get('column_mapping', {})
-        if not template_column_mapping:
-            self.logger.error(f"No template column mappings found")
+            self.logger.warning("No column mapping found for dataset! Double check that no columns from the original data can be mapped")
+        # Get schema column mapping
+        schema_column_mapping = self.schema.get('column_mapping', {})
+        if not schema_column_mapping:
+            self.logger.error("No schema column mappings found")
             return gdf
         # Get dataset name
         dataset_name = dataset_info.get('name', None)
@@ -119,7 +124,7 @@ class DatasetDownloader:
             return gdf
 
         dataset_values = dataset_column_mapping.values()
-        template_keys = template_column_mapping.keys()
+        schema_keys = schema_column_mapping.keys()
 
         rename = {v: k for k, v in dataset_column_mapping.items()}
         drop = []
@@ -142,7 +147,7 @@ class DatasetDownloader:
             standardized[key] = value
 
         # Add missing converted columns
-        for key in template_keys:
+        for key in schema_keys:
             if key not in dataset_column_mapping.keys():
                 self.logger.warning(f"No column mapping found for column {key}, inserting null...")
                 standardized[key] = "N/A"
