@@ -24,7 +24,7 @@
           "email_address": { "type": "string" },
           "language": { "type": "string", "default": "Dutch" },
           "primary_source": { "type": "string", "format": "uri" },
-          "download_link": { "type": "string", "format": "uri" }
+          "download_link": { "type": "string"}
         }
       },
       "column_mapping": {

@@ -6,7 +6,8 @@
       "data_owner": "Alkmaar (Gemeente)",
       "email_address": "mailto:Oweijer@alkmaar.nl",
       "language": "Dutch",
-      "primary_source": "https://data.overheid.nl/dataset/bomen-alkmaar#panel-description"
+      "primary_source": "https://data.overheid.nl/dataset/bomen-alkmaar#panel-description",
+      "download_link": "http://datalab.alkmaar.nl/geoserver/Alkmaar/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Alkmaar%3ACkan_Bomen&maxFeatures=500000&outputFormat=application%2Fjson"
     },
     "column_mapping": {
       "Latin_name": "latijnse_naam",

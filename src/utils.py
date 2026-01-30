@@ -6,11 +6,6 @@ import json
 import sys
 import jsonschema as js
 
-
-import jsonschema as js
-import json
-import sys
-
 def validate_config(config_path, schema_path, logger):
     """Validates configuration file against JSON schema and logs specific city errors."""
     with open(config_path, 'r') as f:
@@ -37,11 +32,11 @@ def validate_config(config_path, schema_path, logger):
             # The rest of the path tells you the specific field (e.g., 'metadata', 'download_link')
             error_location = " -> ".join(str(p) for p in path)
 
-        logger.error(f"--- Configuration Validation Failed ---")
+        logger.error("--- Configuration Validation Failed ---")
         logger.error(f"Location: {error_location}")
         logger.error(f"Context: {city_info}")
         logger.error(f"Error Message: {e.message}")
-        logger.error(f"---------------------------------------")
+        logger.error("---------------------------------------")
         sys.exit(1)
 
 def calculate_file_size(file_path):
