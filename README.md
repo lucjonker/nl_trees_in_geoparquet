@@ -322,6 +322,11 @@ Each dataset produces a GeoParquet file with:
 - Includes total spatial and temporal extent of all files combined
 - Descriptive metadata
 
+### Retrieving data from the S3 bucket
+A simple example function for retrieving data from the server can be found in `utils.py` with the `download_bbox_from_s3` function.
+This function takes a bucket, output path, and bbox coordinates and uses them to query the dataset, saving the output to a parquet file. 
+This uses DuckDB to query and save the data. See `test.py` for an example of their use.
+
 ---
 
 
